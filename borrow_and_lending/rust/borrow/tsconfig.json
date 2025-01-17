@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "outDir": "./dist", // Directory for compiled files
+    "rootDir": "./",    // Root directory for source files
+    "strict": true,     // Enable strict type checking
+    "esModuleInterop": true,
+    "skipLibCheck": true, // Skip type checking for libraries
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "tests/**/*.ts", // Include test files
+    "node_modules/@coral-xyz/anchor/**/*.d.ts" // Include Anchor types
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

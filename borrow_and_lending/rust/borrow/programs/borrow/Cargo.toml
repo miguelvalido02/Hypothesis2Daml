@@ -1,0 +1,31 @@
+[package]
+name = "borrow"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "borrow"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+async = []
+debug=[]
+custom-heap=[]
+cpi=[]
+no-idl=[]
+anchor-debug=[]
+custom-panic=[]
+mock=[]
+no-log-ix-name=[]
+no-entrypoint=[]
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+
+[dependencies]
+anchor-lang = "0.30.1"
+anchor-spl = "0.30.1"
+
+

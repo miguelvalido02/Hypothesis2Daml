@@ -1,0 +1,19 @@
+name = "miguel/borrow"
+version = "0.0.0"
+compiler = "v1.1.7"
+plutus = "v3"
+license = "Apache-2.0"
+description = "Aiken contracts for project 'miguel/borrow'"
+
+[repository]
+user = "miguel"
+project = "borrow"
+platform = "github"
+
+[[dependencies]]
+name = "aiken-lang/stdlib"
+version = "1.6.0"
+source = "github"
+
+
+[config]
