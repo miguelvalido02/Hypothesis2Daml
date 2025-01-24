@@ -1,0 +1,230 @@
+module BorrowAndLending where
+
+import DA.List (head)
+
+data Lender = Lender with
+    owner: Party
+    token: Text
+    balance: Decimal
+  deriving (Show, Eq)
+
+data Borrower = Borrower with
+    owner: Party
+    collateralToken: Text
+    collateralAmount: Decimal
+    borrowToken: Text
+    borrowAmount: Decimal
+  deriving (Show, Eq)
+
+template BorrowAndLending --derives eq and show
+  with
+    owner:Party
+    users: [Party]
+    lenders: [Lender]
+    borrowers: [Borrower]
+    balances: [(Text, Decimal)]
+  where
+    signatory owner
+    observer users
+    ------------------------------------------AddObserver----------------------------------------------
+    choice AddObserver : ContractId BorrowAndLending
+      with
+        newObserver:Party
+      controller owner
+      do
+        let newUsers= if newObserver `notElem` users then users ++ [newObserver] else users
+        create this with users = newUsers
+    ----------------------------------------------Lend----------------------------------------------
+    
+    choice Lend : ContractId BorrowAndLending
+      with
+        user:Party
+        token:Text
+        amount:Decimal
+
+      controller user
+      do
+        assertMsg 
+          "Amount must be positive"
+          (amount > 0.0) 
+
+        assertMsg 
+          "Token must be in the list of tokens"
+          (any (\(t, _) -> t == token) balances)
+        -- Transfer the token from the user to the contract
+
+        let newBalances = map (\(t, b) -> if t == token then (t, b + amount) else (t, b)) balances
+
+        let isExistingLender = any (\l -> l.owner == user && l.token == token) lenders
+
+        let updatedLenders = 
+              if isExistingLender 
+                then map (\l -> 
+                  if l.owner == user && l.token == token 
+                    then l with balance = l.balance + amount 
+                    else l
+                ) lenders
+                else lenders ++ [
+                  Lender with
+                    owner = user,
+                      token = token,
+                      balance = amount
+                ]
+
+        create this with
+          lenders = updatedLenders,
+            balances = newBalances
+              
+
+-------------------------------------------------Withdraw----------------------------------------------
+
+    choice Withdraw : ContractId BorrowAndLending
+      with
+        user:Party
+        token:Text
+        amount:Decimal
+
+      controller user
+      do
+        assertMsg
+          "Amount must be positive"
+          (amount > 0.0) 
+
+        assertMsg 
+          "Token must be in the list of tokens" 
+          (any (\(t, _) -> t == token) balances)
+
+        assertMsg 
+          "In order to withdraw, user has to lend first" 
+          (any (\l -> l.owner == user && l.token == token && l.balance >= amount) lenders)
+
+        assertMsg 
+          "Contract has insufficient funds" 
+          (any (\(t, b) -> t == token && b >= amount) balances)
+
+        -- Transfer the token from the contract to the user
+
+        let newLenders = map (\l -> if l.owner == user && l.token == token then l with balance = l.balance - amount else l) lenders
+        let newbalances = map (\(t, b) -> if t == token then (t, b - amount) else (t, b)) balances
+
+        create this with
+          lenders = newLenders,
+            balances = newbalances
+-------------------------------------------------Borrow----------------------------------------------
+    choice Borrow : ContractId BorrowAndLending
+      with
+        user:Party
+        collateralToken:Text
+        collateralAmount:Decimal
+        borrowToken:Text
+        borrowAmount:Decimal
+
+      controller user
+      do
+        assertMsg 
+          "Collateral amount must be positive" 
+          (collateralAmount > 0.0) 
+
+        assertMsg 
+          "Borrow amount must be positive" 
+          (borrowAmount > 0.0) 
+
+        assertMsg 
+          "Collateral amount must be greater than twice the borrow amount" 
+          (collateralAmount >= 2.0 * borrowAmount)
+
+        assertMsg 
+          "Collateral token must be in the list of tokens" 
+          (any (\(t, _) -> t == collateralToken) balances) 
+
+        assertMsg 
+          "Borrow token must be in the list of tokens" 
+          (any (\(t, _) -> t == borrowToken) balances)
+
+        assertMsg 
+          "Insufficient collateral" 
+          (any (\l -> l.owner == user && l.token == collateralToken && l.balance >= collateralAmount) lenders)
+
+        assertMsg 
+          "User already has an active loan of this token using the same collateral token" 
+          (not (any (\b -> b.owner == user && b.borrowToken == borrowToken && b.collateralToken == collateralToken) borrowers))
+
+        assertMsg 
+          "Contract has insufficient funds"
+          (any (\(t, b) -> t == borrowToken && b >= borrowAmount) balances)
+        -- Transfer the borrow token to the user
+        let newBalances = map (\(t, b) -> if t == borrowToken then (t, b - borrowAmount) else (t, b)) balances
+
+        let newLenders = map (\l -> if l.owner == user && l.token == collateralToken then l with balance = l.balance - collateralAmount else l) lenders
+
+        let newBorrowers = borrowers ++ [
+              Borrower with 
+                owner = user,
+                  collateralToken = collateralToken,
+                  collateralAmount = collateralAmount,
+                  borrowToken = borrowToken,
+                  borrowAmount = borrowAmount]
+
+        create this with 
+          lenders = newLenders,
+            balances = newBalances,
+            borrowers = newBorrowers
+
+-------------------------------------------------getCollaterals----------------------------------------------
+
+    nonconsuming choice GetCollaterals : [Lender]
+      with
+        user:Party
+      controller user
+      do
+        return [l | l <- lenders, l.owner == user]
+
+-------------------------------------------------getBorrowers----------------------------------------------
+    nonconsuming choice GetBorrowers : [Borrower]
+      with
+        user:Party
+      controller user
+      do
+        return [b | b <- borrowers, b.owner == user]
+
+-------------------------------------------------getContractBalances--------------------------------------------------
+    nonconsuming choice GetBalances : [(Text, Decimal)]
+      with
+        user:Party
+      controller user
+      do
+        return balances
+
+-------------------------------------------------Repay--------------------------------------------------
+    
+    choice Repay : ContractId BorrowAndLending
+      with
+        user:Party
+        collateralToken:Text
+        borrowToken:Text
+      controller user
+      do
+        assertMsg 
+          "Collateral token must be in the list of tokens" 
+          (any (\(t, _) -> t == collateralToken) balances)
+
+        assertMsg 
+          "Borrow token must be in the list of tokens" 
+          (any (\(t, _) -> t == borrowToken) balances)
+
+        assertMsg 
+          "User has to have an active loan of this token using the same collateral token" 
+          (any (\b -> b.owner == user && b.borrowToken == borrowToken && b.collateralToken == collateralToken) borrowers)
+
+        let borrower = head [b | b <- borrowers, b.owner == user && b.borrowToken == borrowToken && b.collateralToken == collateralToken]
+        --Transfer the borrow token from the user to the contract
+        let newBalances = map (\(t, b) -> if t == borrowToken then (t, b + borrower.borrowAmount) else (t, b)) balances
+
+        let newLenders = map (\l -> if l.owner == user && l.token == collateralToken then l with balance = l.balance + borrower.collateralAmount else l) lenders
+
+        let newBorrowers = filter (\b -> not (b.owner == user && b.borrowToken == borrowToken && b.collateralToken == collateralToken)) borrowers
+
+        create this with
+          lenders = newLenders,
+            balances = newBalances,
+            borrowers = newBorrowers
