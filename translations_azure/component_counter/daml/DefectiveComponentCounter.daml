@@ -2,17 +2,16 @@ module DefectiveComponentCounter where
 
 template DefectiveCounter
   with
-    manufacturer : Party -- Role: Manufacturer (M)
+    manufacturer : Party
     defectiveComponents : Int -- Counter
     state : Text -- Current state ("Create", "ComputeTotal")
   where
     signatory manufacturer
 
-    -- Transition: ComputeTotal
     choice ComputeTotal
       : ContractId DefectiveCounter
       controller manufacturer
         do
           assertMsg "State must be 'Create' to compute total" (state == "Create")
           create this with
-            state = "ComputeTotal" -- Transition to success state
+            state = "ComputeTotal" -- Transition to final state
