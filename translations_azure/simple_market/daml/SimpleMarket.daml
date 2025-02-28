@@ -1,0 +1,35 @@
+module SimpleMarket where
+
+template Market
+  with
+    owner : Party    -- Role: Owner (O)
+    buyer : Party    -- Role: Buyer (B)
+    item : Text      -- Item name
+    state : Text     -- Current state ("ItemAvailable", "OfferPlaced", "Accept")
+  where
+    signatory owner
+    observer buyer
+
+    choice MakeOffer
+      : ContractId Market
+      controller buyer
+        do
+          assertMsg "State must be 'ItemAvailable' to make an offer" (state == "ItemAvailable")
+          create this with
+            state = "OfferPlaced"
+
+    choice AcceptOffer
+      : ContractId Market
+      controller owner
+        do
+          assertMsg "State must be 'OfferPlaced' to accept an offer" (state == "OfferPlaced")
+          create this with
+            state = "Accept"
+
+    choice RejectOffer
+      : ContractId Market
+      controller owner
+        do
+          assertMsg "State must be 'OfferPlaced' to reject an offer" (state == "OfferPlaced")
+          create this with
+            state = "ItemAvailable"

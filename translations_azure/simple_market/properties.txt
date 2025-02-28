@@ -1,0 +1,6 @@
+Só se pode chamar a choice MakeOffer quando o estado é "ItemAvailable"
+Sempre que um buyer executa a choice MakeOffer com sucesso, o estado do contrato é "OfferPlaced"
+Só o owner pode chamar a choice AcceptOffer
+Só o owner pode chamar a choice RejectOffer
+O owner só pode chamar a choice AcceptOffer quando o estado é "OfferPlaced"
+O owner só pode chamar a choice RejectOffer quando o estado é "OfferPlaced"

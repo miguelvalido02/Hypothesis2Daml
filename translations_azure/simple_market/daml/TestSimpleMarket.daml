@@ -1,0 +1,48 @@
+module TestSimpleMarket where
+
+import SimpleMarket
+import Daml.Script
+
+test = script do
+  buyer <- allocateParty "Alice" -- Owner
+  owner  <- allocateParty "Bob"     -- Buyer
+
+  -- Step 1: Create the initial Market
+  itemAvailable <- submit owner do
+    createCmd Market with
+      owner = owner
+      buyer = buyer
+      item = "item"
+      state = "ItemAvailable"
+
+  -- Make sure that the owner cannot accept offer as there is no offer
+  submitMustFail owner do
+    exerciseCmd itemAvailable AcceptOffer
+  -- Make sure that the only the buyer can make an offer
+  submitMustFail owner do
+    exerciseCmd itemAvailable MakeOffer
+  -- Step 2: Buyer places an offer, changing state to "OfferPlaced"
+  offerPlaced <- submit buyer do
+    exerciseCmd itemAvailable MakeOffer
+
+  -- Make sure that the buyer cannot make another offer
+  submitMustFail buyer do
+    exerciseCmd offerPlaced MakeOffer
+  -- Make sure that the buyer cannot accept the offer
+  submitMustFail buyer do
+    exerciseCmd offerPlaced AcceptOffer
+  -- Make sure that the buyer cannot reject the offer
+  submitMustFail buyer do
+    exerciseCmd offerPlaced RejectOffer
+  
+  -- Step 3: Owner rejects the offer, transitioning back to "ItemAvailable"
+  rejected <- submit owner do
+    exerciseCmd offerPlaced RejectOffer
+  
+  -- Step 4: Buyer makes second offer, transitioning to "OfferPlaced"
+  offerPlaced2 <- submit buyer do
+    exerciseCmd rejected MakeOffer
+  -- Step 5: Owner accepts the offer, transitioning to "Accepted"
+  accepted <- submit owner do
+    exerciseCmd offerPlaced2 AcceptOffer
+  debug accepted

@@ -1,0 +1,25 @@
+module TestDefectiveComponentCounter where
+
+import DefectiveComponentCounter
+import Daml.Script
+
+test = script do
+  manufacturer <- allocateParty "Manufacturer"
+  random <- allocateParty "Random"
+  
+  -- Step 1: Create the initial DefectiveCounter contract in the "Create" state
+  created <- submit manufacturer do
+    createCmd DefectiveCounter with
+      manufacturer = manufacturer
+      defectiveComponents = 10
+      state = "Create"
+
+  -- Make sure random stranger can't compute the total
+  submitMustFail random do
+    exerciseCmd created ComputeTotal
+
+  -- Step 2: Compute the total, transitioning to the "ComputeTotal" state
+  computed <- submit manufacturer do
+    exerciseCmd created ComputeTotal
+  
+  debug computed
