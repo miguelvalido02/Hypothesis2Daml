@@ -1,0 +1,126 @@
+module AssetTransfer where
+
+import DA.Optional ()
+
+data StateType
+  = Active 
+  | OfferPlaced 
+  | PendingInspection 
+  | Inspected 
+  | Appraised 
+  | NotionalAcceptance 
+  | BuyerAccepted 
+  | SellerAccepted 
+  | Accepted 
+  | Terminated
+  deriving (Eq, Show)
+
+template AssetTransfer
+  with
+    owner : Party
+    potentialBuyers : [Party]
+    buyer : Optional Party
+    inspector : Optional Party
+    appraiser : Optional Party
+    description : Text
+    askingPrice : Decimal
+    offerPrice : Optional Decimal
+    state : StateType
+  where
+    signatory owner
+    observer potentialBuyers  -- All potential buyers have visibility
+
+  -- Terminate contract (Allowed only before SellerAccepted or Accepted state)
+    choice Terminate : ContractId AssetTransfer
+      controller owner
+      do
+        assert (state `notElem` [SellerAccepted, Accepted])  -- Prevent termination if already accepted
+        create this with state = Terminated
+
+    -- Modify asset details (Active → Active)
+    choice Modify : ContractId AssetTransfer
+      with
+        newDescription : Text
+        newPrice : Decimal
+      controller owner
+      do
+        assert (state == Active)
+        create this with
+          description = newDescription
+          askingPrice = newPrice
+
+    -- Buyer makes an offer (Active → OfferPlaced)
+    choice MakeOffer : ContractId AssetTransfer
+      with
+        buyerParty : Party
+        newInspector : Party
+        newAppraiser : Party
+        newOfferPrice : Decimal
+      controller buyerParty
+      do
+        assert (state == Active)
+        create this with
+          buyer = Some buyerParty
+          inspector = Some newInspector
+          appraiser = Some newAppraiser
+          offerPrice = Some newOfferPrice
+          state = OfferPlaced
+          potentialBuyers = potentialBuyers ++ [newAppraiser, newInspector]
+
+    -- Modify offer price (OfferPlaced → OfferPlaced)
+    choice ModifyOffer : ContractId AssetTransfer
+      with
+        newOfferPrice : Decimal
+      controller (case buyer of Some p -> p; None -> error "No buyer assigned")
+      do
+        assert (state == OfferPlaced)
+        create this with offerPrice = Some newOfferPrice
+
+    -- Owner rejects offer (OfferPlaced or later → Active)
+    choice Reject : ContractId AssetTransfer
+      controller owner
+      do
+        assert (state `elem` [OfferPlaced, PendingInspection, Inspected, Appraised, NotionalAcceptance, BuyerAccepted])
+        create this with buyer = None, offerPrice = None, state = Active, inspector = None, appraiser = None
+
+    -- Owner accepts offer (OfferPlaced → PendingInspection)
+    choice AcceptOffer : ContractId AssetTransfer
+      controller owner
+      do
+        assert (state == OfferPlaced)
+        create this with state = PendingInspection
+
+    -- Buyer rescinds offer (OfferPlaced or later → Active)
+    choice RescindOffer : ContractId AssetTransfer
+      controller (case buyer of Some p -> p; None -> error "No buyer assigned")
+      do
+        assert (state `elem` [OfferPlaced, PendingInspection, Inspected, Appraised, NotionalAcceptance, SellerAccepted])
+        create this with buyer = None, offerPrice = None, state = Active, inspector = None, appraiser = None
+
+    -- Mark as inspected (PendingInspection → Inspected or NotionalAcceptance)
+    choice MarkInspected : ContractId AssetTransfer
+      controller (case inspector of Some p -> p; None -> error "No inspector assigned")
+      do
+        assert (state `elem` [PendingInspection, Appraised])
+        create this with state = if state == PendingInspection then Inspected else NotionalAcceptance
+
+    -- Mark as appraised (PendingInspection → Appraised or Inspected → NotionalAcceptance)
+    choice MarkAppraised : ContractId AssetTransfer
+      controller (case appraiser of Some p -> p; None -> error "No appraiser assigned")
+      do
+        assert (state `elem` [PendingInspection, Inspected])
+        create this with state = if state == PendingInspection then Appraised else NotionalAcceptance
+
+    -- Seller accepts inspection & appraisal (NotionalAcceptance or BuyerAccepted → SellerAccepted)
+    choice Accept : ContractId AssetTransfer
+      controller owner
+      do
+        assert (state `elem` [NotionalAcceptance, BuyerAccepted])
+        create this with state = SellerAccepted
+
+    -- Buyer accepts inspection & appraisal (NotionalAcceptance → BuyerAccepted or SellerAccepted → Accepted)
+    choice AcceptByBuyer : ContractId AssetTransfer
+      controller (case buyer of Some p -> p; None -> error "No buyer assigned")
+      do
+        assert (state `elem` [NotionalAcceptance, SellerAccepted])
+        create this with state = if state == NotionalAcceptance then BuyerAccepted else Accepted
