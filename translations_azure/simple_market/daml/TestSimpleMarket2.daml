@@ -1,4 +1,4 @@
-module TestSimpleMarket where
+module TestSimpleMarket2 where
 
 import SimpleMarket
 import Daml.Script
@@ -11,9 +11,8 @@ import Daml.Script
       - The buyer cannot make multiple offers before the owner responds.
       - The buyer cannot accept or reject the offer themselves.
   3. The buyer successfully places an offer, transitioning the contract to OfferPlaced.
-  4. The owner rejects the offer, transitioning the contract back to ItemAvailable.
-  5. The buyer places a second offer, again transitioning to OfferPlaced.
-  6. The owner accepts the second offer, completing the transaction and transitioning to Accepted.
+  4. The owner accepts the offer, completing the transaction and transitioning to Accepted.
+  5. The buyer attempts to make another offer, but fails due to wrong state.
 -}
 
 test = script do
@@ -48,14 +47,11 @@ test = script do
   submitMustFail buyer do
     exerciseCmd offerPlaced RejectOffer
   
-  -- Step 3: Owner rejects the offer, transitioning back to "ItemAvailable"
-  rejected <- submit owner do
-    exerciseCmd offerPlaced RejectOffer
-  
-  -- Step 4: Buyer makes second offer, transitioning to "OfferPlaced"
-  offerPlaced2 <- submit buyer do
-    exerciseCmd rejected MakeOffer
-  -- Step 5: Owner accepts the offer, transitioning to "Accepted"
+  -- Step 4: Owner accepts the offer, transitioning to "Accepted"
   accepted <- submit owner do
-    exerciseCmd offerPlaced2 AcceptOffer
+    exerciseCmd offerPlaced AcceptOffer
+
+  -- Make sure that the buyer cannot make another offer
+  submitMustFail buyer do
+    exerciseCmd accepted MakeOffer
   debug accepted
