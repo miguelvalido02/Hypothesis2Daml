@@ -1,4 +1,4 @@
-module TestFrequentFlier where
+module TestFrequentFlier2 where
 
 import Daml.Script
 import FrequentFlier
@@ -12,8 +12,8 @@ test : Script ()
       - The airline representative cannot add miles.
       - The frequent flier can successfully add miles.
       - The airline representative still cannot add miles after the flier has.
-      - The airline representative can retrieve the list of miles.
-      - The airline representative can retrieve the total rewards.
+      - The flier can retrieve the list of miles.
+      - The flier can retrieve the total rewards.
   4. The test verifies that the correct number of miles and rewards are calculated.
 -}
 
@@ -46,17 +46,17 @@ test = script do
     exerciseCmd contractId2 AddMiles with
       newMiles = [50, 75]
 
-  -- Step 4: airlineRep can call GetMiles
-  milesRetrieved <- submit airlineRep do
+  -- Step 4: Flier can call GetMiles
+  milesRetrieved <- submit flier do
     exerciseCmd contractId2 GetMiles with
-      caller = airlineRep
+      caller = flier
 
   debug milesRetrieved  -- Should output [100, 200]
   assert (milesRetrieved == [100, 200])
-  -- Step 5: airlineRep can call GetRewards
-  rewardsRetrieved <- submit airlineRep do
+  -- Step 5: Flier can call GetRewards
+  rewardsRetrieved <- submit flier do
     exerciseCmd contractId2 GetRewards with
-      caller = airlineRep
+      caller = flier
 
   debug rewardsRetrieved  -- Should output 600 (100*2 + 200*2)
   assert (rewardsRetrieved == 600)

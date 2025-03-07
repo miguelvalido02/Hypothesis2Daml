@@ -26,12 +26,12 @@ template FrequentFlier
 
     nonconsuming choice GetMiles : [Int]
       with
-        caller : Party  -- Allow any party to call this choice
+        caller : Party  -- Allow any party with visibility to call this choice
       controller caller
       do return miles
 
     nonconsuming choice GetRewards : Int
       with
-        caller : Party  -- Allow any party to call this choice
+        caller : Party  -- Allow any party with visibility to call this choice
       controller caller
       do return totalRewards
