@@ -1,0 +1,121 @@
+module TestAssetTransfer2 where
+
+import AssetTransfer
+import Daml.Script
+
+{-
+  1. The seller creates an AssetTransfer contract in the Active state.
+  2. Buyer1 makes an offer, transitioning the contract to OfferPlaced.
+  3. The seller rejects the offer, returning the contract to Active.
+  4. Buyer1 makes a second offer, transitioning to OfferPlaced.
+  5. The seller accepts the offer, transitioning the contract to PendingInspection.
+  6. The inspector marks the asset as inspected, transitioning the contract to Inspected.
+  7. The appraiser marks the asset as appraised, transitioning the contract to NotionalAcceptance.
+  8. The seller accepts the inspection and appraisal, transitioning to SellerAccepted.
+  9. Buyer1 rescinds the offer, returning the contract to Active.
+  10. The test ensures that:
+      - The buyer cannot rescind the offer again after it has already been rescinded.
+  11. The process is repeated from Active state to SellerAccepted state again.
+  12. The test ensures that:
+      - The seller cannot terminate the contract in Accepted state.
+      - The buyer cannot rescind the offer after final acceptance.
+
+  By running through the full process twice, this test guarantees that rescinding an offer does
+  not break the contract and that it can still complete the asset transfer successfully.
+-}
+
+
+testAssetTransfer3 = script do
+  -- Allocate parties
+  seller <- allocateParty "Seller"
+  buyer1 <- allocateParty "Buyer1"
+  buyer2 <- allocateParty "Buyer2"
+  inspector <- allocateParty "Inspector"
+  appraiser <- allocateParty "Appraiser"
+
+  -- Step 1: Seller creates the AssetTransfer contract (Active state)
+  asset <- submit seller do
+    createCmd AssetTransfer with
+      owner = seller
+      potentialBuyers = [buyer1, buyer2]
+      buyer = None
+      inspector = None
+      appraiser = None
+      description = "Luxury Car"
+      askingPrice = 50000.0
+      offerPrice = None
+      state = Active
+
+  -- Step 2: Buyer1 makes an offer (Active → OfferPlaced)
+  assetOfferPlaced <- submit buyer1 do
+    exerciseCmd asset MakeOffer with
+      buyerParty = buyer1
+      newInspector = inspector
+      newAppraiser = appraiser
+      newOfferPrice = 45000.0
+
+  -- Step 3: Seller rejects the offer (OfferPlaced → Active)
+  assetActive <- submit seller do
+    exerciseCmd assetOfferPlaced Reject
+
+  -- Step 4: Buyer1 makes a second offer (Active → OfferPlaced)
+  assetOfferPlaced2 <- submit buyer1 do
+    exerciseCmd assetActive MakeOffer with
+      buyerParty = buyer1
+      newInspector = inspector
+      newAppraiser = appraiser
+      newOfferPrice = 45000.0
+
+  -- Step 5: Seller accepts the offer (OfferPlaced → PendingInspection)
+  assetPendingInspection <- submit seller do
+    exerciseCmd assetOfferPlaced2 AcceptOffer
+
+  -- Step 6: Inspector marks the asset as inspected (PendingInspection → Inspected)
+  assetInspected <- submit inspector do
+    exerciseCmd assetPendingInspection MarkInspected
+
+  -- Step 7: Appraiser marks the asset as appraised (Inspected → NotionalAcceptance)
+  assetNotionalAcceptance <- submit appraiser do
+    exerciseCmd assetInspected MarkAppraised
+
+  -- Step 8: Seller accepts the inspection & appraisal (NotionalAcceptance → SellerAccepted)
+  assetSellerAccepted <- submit seller do
+    exerciseCmd assetNotionalAcceptance Accept
+
+  -- Step 9: Buyer rescinds the offer (SellerAccepted → Active)
+  assetBackToActive <- submit buyer1 do
+    exerciseCmd assetSellerAccepted RescindOffer
+
+  -- Ensure buyer cannot rescind the offer again
+  submitMustFail buyer1 do exerciseCmd assetBackToActive RescindOffer
+
+  -- Step 10: Repeat the process without submitMustFail checks
+  assetOfferPlaced3 <- submit buyer1 do
+    exerciseCmd assetBackToActive MakeOffer with
+      buyerParty = buyer1
+      newInspector = inspector
+      newAppraiser = appraiser
+      newOfferPrice = 45000.0
+
+  assetPendingInspection2 <- submit seller do
+    exerciseCmd assetOfferPlaced3 AcceptOffer
+
+  assetInspected2 <- submit inspector do
+    exerciseCmd assetPendingInspection2 MarkInspected
+
+  assetNotionalAcceptance2 <- submit appraiser do
+    exerciseCmd assetInspected2 MarkAppraised
+
+  assetSellerAccepted2 <- submit seller do
+    exerciseCmd assetNotionalAcceptance2 Accept
+
+  assetAccepted <- submit buyer1 do
+    exerciseCmd assetSellerAccepted2 AcceptByBuyer
+
+  -- Step 11: Ensure seller cannot terminate in Accepted state
+  submitMustFail seller do exerciseCmd assetAccepted Terminate
+
+  -- Ensure buyer cannot rescind offer in Accepted state
+  submitMustFail buyer1 do exerciseCmd assetAccepted RescindOffer
+
+  debug assetAccepted
