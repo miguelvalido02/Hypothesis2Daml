@@ -18,7 +18,7 @@ data StateType
 template AssetTransfer
   with
     owner : Party
-    potentialBuyers : [Party]
+    potentialBuyers : [Party] --Variable to make sure that the potential buyers have visibility/can interact with the contract
     buyer : Optional Party
     inspector : Optional Party
     appraiser : Optional Party

@@ -10,7 +10,7 @@ template DigitalLocker
     owner : Party
     state : StateType
     bankAgent : Party
-    thirdParties : [Party]  -- List of third-party observers
+    thirdParties : [Party]  -- List of third-party observers to make sure they have visibility/can interact with the contract
     currentAuthorizedUser : Optional Party
 
     lockerStatus : Text

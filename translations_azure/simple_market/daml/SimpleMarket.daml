@@ -3,7 +3,7 @@ module SimpleMarket where
 template Market
   with
     owner : Party    -- Role: Owner
-    buyer : Party    -- Role: Buyer
+    buyer : Party    -- Role: Buyer --Needs to be specified when creating the contract to make sure that they have visibility/can interact with the contract
     item : Text      -- Item name
     state : Text     -- Current state ("ItemAvailable", "OfferPlaced", "Accept")
   where

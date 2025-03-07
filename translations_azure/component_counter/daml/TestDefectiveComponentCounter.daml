@@ -4,9 +4,9 @@ import DefectiveComponentCounter
 import Daml.Script
 
 {- 
-  1. A manufacturer creates a `DefectiveCounter` contract in the `"Create"` state with an initial count of defective components.
+  1. A manufacturer creates a DefectiveCounter contract in the Create state with an initial count of defective components.
   2. A random party (not the manufacturer) attempts to compute the total but fails due to access control restrictions.
-  3. The manufacturer successfully exercises `ComputeTotal`, transitioning the contract to the `"ComputeTotal"` state.
+  3. The manufacturer successfully exercises ComputeTotal, transitioning the contract to the ComputeTotal state.
 -}
 
 test = script do
