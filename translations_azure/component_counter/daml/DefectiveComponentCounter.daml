@@ -12,6 +12,5 @@ template DefectiveCounter
       : ContractId DefectiveCounter
       controller manufacturer
         do
-          assertMsg "State must be 'Create' to compute total" (state == "Create")
           create this with
             state = "ComputeTotal" -- Transition to final state

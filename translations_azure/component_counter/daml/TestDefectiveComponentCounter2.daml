@@ -10,6 +10,7 @@ import Daml.Script
   4. The test ensures that the manufacturer can't compute the total again
 -}
 
+test2 : Script ()
 test2 = script do
   manufacturer <- allocateParty "Manufacturer"
   random <- allocateParty "Random"
@@ -27,6 +28,6 @@ test2 = script do
 
   --Make sure the manufacturer can't compute the total again
   submitMustFail manufacturer do
-    exerciseCmd created ComputeTotal
+    exerciseCmd computed ComputeTotal
   
   debug computed
