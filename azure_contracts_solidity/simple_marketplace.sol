@@ -1,11 +1,10 @@
 pragma solidity >=0.4.25 <0.6.0;
 
-contract SimpleMarketplace
-{
-    enum StateType { 
-      ItemAvailable,
-      OfferPlaced,
-      Accepted
+contract SimpleMarketplace {
+    enum StateType {
+        ItemAvailable,
+        OfferPlaced,
+        Accepted
     }
 
     address public InstanceOwner;
@@ -16,28 +15,29 @@ contract SimpleMarketplace
     address public InstanceBuyer;
     int public OfferPrice;
 
-    constructor(string memory description, int price) public
-    {
+    constructor(string memory description, int price) public {
         InstanceOwner = msg.sender;
         AskingPrice = price;
         Description = description;
         State = StateType.ItemAvailable;
     }
 
-    function MakeOffer(int offerPrice) public
-    {
-        if (offerPrice == 0)
-        {
+    // Pre Conditions: offerPrice > 0
+    // Pre Conditions: State == ItemAvailable
+    // Pre Conditions: InstanceOwner != msg.sender
+    // Post Conditions: InstanceBuyer == msg.sender
+    // Post Conditions: OfferPrice == offerPrice
+    // Post Conditions: State == OfferPlaced
+    function MakeOffer(int offerPrice) public {
+        if (offerPrice == 0) {
             revert();
         }
 
-        if (State != StateType.ItemAvailable)
-        {
+        if (State != StateType.ItemAvailable) {
             revert();
         }
-        
-        if (InstanceOwner == msg.sender)
-        {
+
+        if (InstanceOwner == msg.sender) {
             revert();
         }
 
@@ -46,15 +46,16 @@ contract SimpleMarketplace
         State = StateType.OfferPlaced;
     }
 
-    function Reject() public
-    {
-        if ( State != StateType.OfferPlaced )
-        {
+    // Pre Conditions: State == OfferPlaced
+    // Pre Conditions: InstanceOwner == msg.sender
+    // Post Conditions: InstanceBuyer == 0x
+    // Post Conditions: State == ItemAvailable
+    function Reject() public {
+        if (State != StateType.OfferPlaced) {
             revert();
         }
 
-        if (InstanceOwner != msg.sender)
-        {
+        if (InstanceOwner != msg.sender) {
             revert();
         }
 
@@ -62,10 +63,11 @@ contract SimpleMarketplace
         State = StateType.ItemAvailable;
     }
 
-    function AcceptOffer() public
-    {
-        if ( msg.sender != InstanceOwner )
-        {
+    // Pre Conditions: MISSING-> State == OfferPlaced
+    // Pre Conditions: InstanceOwner == msg.sender
+    // Post Conditions: State == Accepted
+    function AcceptOffer() public {
+        if (msg.sender != InstanceOwner) {
             revert();
         }
 
