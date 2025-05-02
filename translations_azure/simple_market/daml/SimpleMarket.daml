@@ -15,6 +15,7 @@ template Market
       controller buyer
         do
           assertMsg "State must be 'ItemAvailable' to make an offer" (state == "ItemAvailable")
+          assertMsg "The owner cannot make an offer" (owner /= buyer)
           create this with
             state = "OfferPlaced"
 
@@ -22,7 +23,7 @@ template Market
       : ContractId Market
       controller owner
         do
-          assertMsg "State must be 'OfferPlaced' to accept an offer" (state == "OfferPlaced")
+          --assertMsg "State must be 'OfferPlaced' to accept an offer" (state == "OfferPlaced")
           create this with
             state = "Accept" --Transition to final state
 

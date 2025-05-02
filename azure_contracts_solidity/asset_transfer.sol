@@ -1,8 +1,19 @@
 pragma solidity >=0.4.25 <0.6.0;
 
-contract AssetTransfer
-{
-    enum StateType { Active, OfferPlaced, PendingInspection, Inspected, Appraised, NotionalAcceptance, BuyerAccepted, SellerAccepted, Accepted, Terminated }
+//Invariants: If offerprice is 0, then the state is Active and the buyer is 0x
+contract AssetTransfer {
+    enum StateType {
+        Active,
+        OfferPlaced,
+        PendingInspection,
+        Inspected,
+        Appraised,
+        NotionalAcceptance,
+        BuyerAccepted,
+        SellerAccepted,
+        Accepted,
+        Terminated
+    }
     address public InstanceOwner;
     string public Description;
     uint public AskingPrice;
@@ -13,32 +24,29 @@ contract AssetTransfer
     address public InstanceInspector;
     address public InstanceAppraiser;
 
-    constructor(string memory description, uint256 price) public
-    {
+    constructor(string memory description, uint256 price) public {
         InstanceOwner = msg.sender;
         AskingPrice = price;
         Description = description;
         State = StateType.Active;
     }
 
-    function Terminate() public
-    {
-        if (InstanceOwner != msg.sender)
-        {
+    // Pre conditions: Owner must be the one terminating the asset
+    // Post conditions: State must be Terminated
+    function Terminate() public {
+        if (InstanceOwner != msg.sender) {
             revert();
         }
 
         State = StateType.Terminated;
     }
 
-    function Modify(string memory description, uint256 price) public
-    {
-        if (State != StateType.Active)
-        {
+    // Pre conditions: State must be Active; The owner must be the one modifying the asset
+    function Modify(string memory description, uint256 price) public {
+        if (State != StateType.Active) {
             revert();
         }
-        if (InstanceOwner != msg.sender)
-        {
+        if (InstanceOwner != msg.sender) {
             revert();
         }
 
@@ -46,18 +54,27 @@ contract AssetTransfer
         AskingPrice = price;
     }
 
-    function MakeOffer(address inspector, address appraiser, uint256 offerPrice) public
-    {
-        if (inspector == 0x0000000000000000000000000000000000000000 || appraiser == 0x0000000000000000000000000000000000000000 || offerPrice == 0)
-        {
+    // Pre conditions: State must be Active; offerPrice must not be 0; The owner must not be the buyer; Inspector and appraiser must be valid addresses
+
+    function MakeOffer(
+        address inspector,
+        address appraiser,
+        uint256 offerPrice
+    ) public {
+        if (
+            inspector == 0x0000000000000000000000000000000000000000 ||
+            appraiser == 0x0000000000000000000000000000000000000000 ||
+            offerPrice == 0
+        ) {
             revert();
         }
-        if (State != StateType.Active)
-        {
+        if (State != StateType.Active) {
             revert();
         }
         // Cannot enforce "AllowedRoles":["Buyer"] because Role information is unavailable
-        if (InstanceOwner == msg.sender) // not expressible in the current specification language
+        if (
+            InstanceOwner == msg.sender
+        ) // not expressible in the current specification language
         {
             revert();
         }
@@ -69,28 +86,30 @@ contract AssetTransfer
         State = StateType.OfferPlaced;
     }
 
-    function AcceptOffer() public
-    {
-        if (State != StateType.OfferPlaced)
-        {
+    // Pre conditions: State must be OfferPlaced; The owner must be the one accepting the offer
+    function AcceptOffer() public {
+        if (State != StateType.OfferPlaced) {
             revert();
         }
-        if (InstanceOwner != msg.sender)
-        {
+        if (InstanceOwner != msg.sender) {
             revert();
         }
 
         State = StateType.PendingInspection;
     }
 
-    function Reject() public
-    {
-        if (State != StateType.OfferPlaced && State != StateType.PendingInspection && State != StateType.Inspected && State != StateType.Appraised && State != StateType.NotionalAcceptance && State != StateType.BuyerAccepted)
-        {
+    function Reject() public {
+        if (
+            State != StateType.OfferPlaced &&
+            State != StateType.PendingInspection &&
+            State != StateType.Inspected &&
+            State != StateType.Appraised &&
+            State != StateType.NotionalAcceptance &&
+            State != StateType.BuyerAccepted
+        ) {
             revert();
         }
-        if (InstanceOwner != msg.sender)
-        {
+        if (InstanceOwner != msg.sender) {
             revert();
         }
 
@@ -98,73 +117,65 @@ contract AssetTransfer
         State = StateType.Active;
     }
 
-    function Accept() public
-    {
-        if (msg.sender != InstanceBuyer && msg.sender != InstanceOwner)
-        {
+    function Accept() public {
+        if (msg.sender != InstanceBuyer && msg.sender != InstanceOwner) {
             revert();
         }
 
-        if (msg.sender == InstanceOwner &&
+        if (
+            msg.sender == InstanceOwner &&
             State != StateType.NotionalAcceptance &&
-            State != StateType.BuyerAccepted)
-        {
+            State != StateType.BuyerAccepted
+        ) {
             revert();
         }
 
-        if (msg.sender == InstanceBuyer &&
+        if (
+            msg.sender == InstanceBuyer &&
             State != StateType.NotionalAcceptance &&
-            State != StateType.SellerAccepted)
-        {
+            State != StateType.SellerAccepted
+        ) {
             revert();
         }
 
-        if (msg.sender == InstanceBuyer)
-        {
-            if (State == StateType.NotionalAcceptance)
-            {
+        if (msg.sender == InstanceBuyer) {
+            if (State == StateType.NotionalAcceptance) {
                 State = StateType.BuyerAccepted;
-            }
-            else if (State == StateType.SellerAccepted)
-            {
+            } else if (State == StateType.SellerAccepted) {
                 State = StateType.Accepted;
             }
-        }
-        else
-        {
-            if (State == StateType.NotionalAcceptance)
-            {
+        } else {
+            if (State == StateType.NotionalAcceptance) {
                 State = StateType.SellerAccepted;
-            }
-            else if (State == StateType.BuyerAccepted)
-            {
+            } else if (State == StateType.BuyerAccepted) {
                 State = StateType.Accepted;
             }
         }
     }
 
-    function ModifyOffer(uint256 offerPrice) public
-    {
-        if (State != StateType.OfferPlaced)
-        {
+    function ModifyOffer(uint256 offerPrice) public {
+        if (State != StateType.OfferPlaced) {
             revert();
         }
-        if (InstanceBuyer != msg.sender || offerPrice == 0)
-        {
+        if (InstanceBuyer != msg.sender || offerPrice == 0) {
             revert();
         }
 
         OfferPrice = offerPrice;
     }
 
-    function RescindOffer() public
-    {
-        if (State != StateType.OfferPlaced && State != StateType.PendingInspection && State != StateType.Inspected && State != StateType.Appraised && State != StateType.NotionalAcceptance && State != StateType.SellerAccepted)
-        {
+    function RescindOffer() public {
+        if (
+            State != StateType.OfferPlaced &&
+            State != StateType.PendingInspection &&
+            State != StateType.Inspected &&
+            State != StateType.Appraised &&
+            State != StateType.NotionalAcceptance &&
+            State != StateType.SellerAccepted
+        ) {
             revert();
         }
-        if (InstanceBuyer != msg.sender)
-        {
+        if (InstanceBuyer != msg.sender) {
             revert();
         }
 
@@ -173,44 +184,30 @@ contract AssetTransfer
         State = StateType.Active;
     }
 
-    function MarkAppraised() public
-    {
-        if (InstanceAppraiser != msg.sender)
-        {
+    function MarkAppraised() public {
+        if (InstanceAppraiser != msg.sender) {
             revert();
         }
 
-        if (State == StateType.PendingInspection)
-        {
+        if (State == StateType.PendingInspection) {
             State = StateType.Appraised;
-        }
-        else if (State == StateType.Inspected)
-        {
+        } else if (State == StateType.Inspected) {
             State = StateType.NotionalAcceptance;
-        }
-        else
-        {
+        } else {
             revert();
         }
     }
 
-    function MarkInspected() public
-    {
-        if (InstanceInspector != msg.sender)
-        {
+    function MarkInspected() public {
+        if (InstanceInspector != msg.sender) {
             revert();
         }
 
-        if (State == StateType.PendingInspection)
-        {
+        if (State == StateType.PendingInspection) {
             State = StateType.Inspected;
-        }
-        else if (State == StateType.Appraised)
-        {
+        } else if (State == StateType.Appraised) {
             State = StateType.NotionalAcceptance;
-        }
-        else
-        {
+        } else {
             revert();
         }
     }
