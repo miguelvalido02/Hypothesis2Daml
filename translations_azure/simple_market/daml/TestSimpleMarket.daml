@@ -16,6 +16,7 @@ import Daml.Script
   6. The owner accepts the second offer, completing the transaction and transitioning to Accepted.
 -}
 
+test : Script ()
 test = script do
   owner  <- allocateParty "Bob"  -- Owner
   buyer <- allocateParty "Alice" -- Buyer

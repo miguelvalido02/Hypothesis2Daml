@@ -1,36 +1,37 @@
 pragma solidity >=0.4.25 <0.6.0;
 
 contract DefectiveComponentCounter {
-
-     //Set of States
-    enum StateType {Create, ComputeTotal}
+    //Set of States
+    enum StateType {
+        Create,
+        ComputeTotal
+    }
 
     //List of properties
-    StateType public  State;
-    address public  Manufacturer;
+    StateType public State;
+    address public Manufacturer;
     int[12] public DefectiveComponentsCount;
     int public Total;
 
     // constructor function
-    constructor(int[12] memory defectiveComponentsCount) public
-    {
+    constructor(int[12] memory defectiveComponentsCount) public {
         Manufacturer = msg.sender;
         DefectiveComponentsCount = defectiveComponentsCount;
         Total = 0;
         State = StateType.Create;
     }
 
+    // Pre conditions: The owner must be the one calling the function;
+    // Pre conditions: CODE MISSING -> State == StateType.Create
+    // Post conditions: State must be ComputeTotal; Total must be the sum of the first 12 values of DefectiveComponentsCount
     // call this function to send a request
-    function ComputeTotal() public
-    {
-        if (Manufacturer != msg.sender)
-        {
+    function ComputeTotal() public {
+        if (Manufacturer != msg.sender) {
             revert();
         }
 
         // calculate total for only the first 12 values, in case more than 12 are entered
-        for (uint i = 0; i < 12; i++)
-        {
+        for (uint i = 0; i < 12; i++) {
             Total += DefectiveComponentsCount[i];
         }
 
@@ -38,7 +39,11 @@ contract DefectiveComponentCounter {
     }
 
     // add the required getter function for array DefectiveComponentsCount
-    function GetDefectiveComponentsCount() public view returns (int[12] memory) {
+    function GetDefectiveComponentsCount()
+        public
+        view
+        returns (int[12] memory)
+    {
         return DefectiveComponentsCount;
     }
 }

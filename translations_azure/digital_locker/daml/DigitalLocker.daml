@@ -42,7 +42,6 @@ template DigitalLocker
         img : Text
       controller bankAgent
       do
-        assert (state == DocumentReview)
         create this with
           state = AvailableToShare
           lockerStatus = "Approved"
@@ -94,7 +93,6 @@ template DigitalLocker
         purpose : Text
       controller owner
       do
-        assert (state == AvailableToShare)
         create this with
           thirdPartyRequestor = Some recipient
           currentAuthorizedUser = Some recipient

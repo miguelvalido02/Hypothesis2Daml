@@ -1,22 +1,24 @@
 pragma solidity >=0.4.25 <0.6.0;
 
-contract FrequentFlyerRewardsCalculator
-{
-     //Set of States
-    enum StateType {SetFlyerAndReward, MilesAdded}
+// Invariants: IndexCalculated Upto <= Miles.length
+contract FrequentFlyerRewardsCalculator {
+    //Set of States
+    enum StateType {
+        SetFlyerAndReward,
+        MilesAdded
+    }
 
     //List of properties
-    StateType public  State;
-    address public  AirlineRepresentative;
-    address public  Flyer;
+    StateType public State;
+    address public AirlineRepresentative;
+    address public Flyer;
     uint public RewardsPerMile;
     uint[] public Miles;
     uint IndexCalculatedUpto;
     uint public TotalRewards;
 
     // constructor function
-    constructor(address flyer, int rewardsPerMile) public
-    {
+    constructor(address flyer, int rewardsPerMile) public {
         AirlineRepresentative = msg.sender;
         Flyer = flyer;
         RewardsPerMile = uint(rewardsPerMile);
@@ -26,15 +28,15 @@ contract FrequentFlyerRewardsCalculator
     }
 
     // call this function to add miles
-    function AddMiles(int[] memory miles) public
-    {
-        if (Flyer != msg.sender)
-        {
+    // Pre Condition: Flyer must be the sender;
+    // Post Condition: State == StateType.MilesAdded
+    // Post Condition: Miles.contains(miles)
+    function AddMiles(int[] memory miles) public {
+        if (Flyer != msg.sender) {
             revert();
         }
 
-        for (uint i = 0; i < miles.length; i++)
-        {
+        for (uint i = 0; i < miles.length; i++) {
             Miles.push(uint(miles[i]));
         }
 
@@ -43,12 +45,10 @@ contract FrequentFlyerRewardsCalculator
         State = StateType.MilesAdded;
     }
 
-    function ComputeTotalRewards() private
-    {
+    function ComputeTotalRewards() private {
         // make length uint compatible
         uint milesLength = uint(Miles.length);
-        for (uint i = IndexCalculatedUpto; i < milesLength; i++)
-        {
+        for (uint i = IndexCalculatedUpto; i < milesLength; i++) {
             TotalRewards += (RewardsPerMile * Miles[i]);
             IndexCalculatedUpto++;
         }

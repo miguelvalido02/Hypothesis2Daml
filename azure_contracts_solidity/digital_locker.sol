@@ -1,8 +1,14 @@
 pragma solidity >=0.4.25 <0.6.0;
 
-contract DigitalLocker
-{
-    enum StateType { Requested, DocumentReview, AvailableToShare, SharingRequestPending, SharingWithThirdParty, Terminated }
+contract DigitalLocker {
+    enum StateType {
+        Requested,
+        DocumentReview,
+        AvailableToShare,
+        SharingRequestPending,
+        SharingWithThirdParty,
+        Terminated
+    }
     address public Owner;
     address public BankAgent;
     string public LockerFriendlyName;
@@ -16,8 +22,7 @@ contract DigitalLocker
     string public RejectionReason;
     StateType public State;
 
-    constructor(string memory lockerFriendlyName, address bankAgent) public
-    {
+    constructor(string memory lockerFriendlyName, address bankAgent) public {
         Owner = msg.sender;
         LockerFriendlyName = lockerFriendlyName;
 
@@ -26,13 +31,11 @@ contract DigitalLocker
         BankAgent = bankAgent;
     }
 
-    function BeginReviewProcess() public
-    {
+    function BeginReviewProcess() public {
         /* Need to update, likely with registry to confirm sender is agent
         Also need to add a function to re-assign the agent.
         */
-        if (Owner == msg.sender)
-        {
+        if (Owner == msg.sender) {
             revert();
         }
         BankAgent = msg.sender;
@@ -41,10 +44,8 @@ contract DigitalLocker
         State = StateType.DocumentReview;
     }
 
-    function RejectApplication(string memory rejectionReason) public
-    {
-        if (BankAgent != msg.sender)
-        {
+    function RejectApplication(string memory rejectionReason) public {
+        if (BankAgent != msg.sender) {
             revert();
         }
 
@@ -53,10 +54,13 @@ contract DigitalLocker
         State = StateType.DocumentReview;
     }
 
-    function UploadDocuments(string memory lockerIdentifier, string memory image) public
-    {
-        if (BankAgent != msg.sender)
-        {
+    // Pre Condition: BankAgent must be the sender;
+    // Pre Condition: MISSING -> State == StateType.DocumentReview.
+    function UploadDocuments(
+        string memory lockerIdentifier,
+        string memory image
+    ) public {
+        if (BankAgent != msg.sender) {
             revert();
         }
         LockerStatus = "Approved";
@@ -65,10 +69,14 @@ contract DigitalLocker
         State = StateType.AvailableToShare;
     }
 
-    function ShareWithThirdParty(address thirdPartyRequestor, string memory expirationDate, string memory intendedPurpose) public
-    {
-        if (Owner != msg.sender)
-        {
+    // Pre Condition: Owner must be the sender;
+    // Pre Condition: MISSING-> State == StateType.AvailableToShare
+    function ShareWithThirdParty(
+        address thirdPartyRequestor,
+        string memory expirationDate,
+        string memory intendedPurpose
+    ) public {
+        if (Owner != msg.sender) {
             revert();
         }
 
@@ -81,10 +89,8 @@ contract DigitalLocker
         State = StateType.SharingWithThirdParty;
     }
 
-    function AcceptSharingRequest() public
-    {
-        if (Owner != msg.sender)
-        {
+    function AcceptSharingRequest() public {
+        if (Owner != msg.sender) {
             revert();
         }
 
@@ -92,10 +98,11 @@ contract DigitalLocker
         State = StateType.SharingWithThirdParty;
     }
 
-    function RejectSharingRequest() public
-    {
-        if (Owner != msg.sender)
-        {
+    // Post Condition : CurrentAuthorizedUser == 0x
+    // Post Condition : LockerStatus == "Available"
+    // Post Condition : State == StateType.AvailableToShare
+    function RejectSharingRequest() public {
+        if (Owner != msg.sender) {
             revert();
         }
         LockerStatus = "Available";
@@ -103,10 +110,9 @@ contract DigitalLocker
         State = StateType.AvailableToShare;
     }
 
-    function RequestLockerAccess(string memory intendedPurpose) public
-    {
-        if (Owner == msg.sender)
-        {
+    // Pre Condition: Owner must be the sender;
+    function RequestLockerAccess(string memory intendedPurpose) public {
+        if (Owner == msg.sender) {
             revert();
         }
 
@@ -115,11 +121,8 @@ contract DigitalLocker
         State = StateType.SharingRequestPending;
     }
 
-    function ReleaseLockerAccess() public
-    {
-
-        if (CurrentAuthorizedUser != msg.sender)
-        {
+    function ReleaseLockerAccess() public {
+        if (CurrentAuthorizedUser != msg.sender) {
             revert();
         }
         LockerStatus = "Available";
@@ -128,11 +131,9 @@ contract DigitalLocker
         IntendedPurpose = "";
         State = StateType.AvailableToShare;
     }
-    
-    function RevokeAccessFromThirdParty() public
-    {
-        if (Owner != msg.sender)
-        {
+
+    function RevokeAccessFromThirdParty() public {
+        if (Owner != msg.sender) {
             revert();
         }
         LockerStatus = "Available";
@@ -140,10 +141,10 @@ contract DigitalLocker
         State = StateType.AvailableToShare;
     }
 
-    function Terminate() public
-    {
-        if (Owner != msg.sender)
-        {
+    // Post Condition: CurrentAuthorizedUser == 0x
+    // Post Condition: LockerStatus == "Terminated"
+    function Terminate() public {
+        if (Owner != msg.sender) {
             revert();
         }
         CurrentAuthorizedUser = 0x0000000000000000000000000000000000000000;
