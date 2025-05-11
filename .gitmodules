@@ -1,0 +1,3 @@
+[submodule "tools/ContractFuzzer"]
+	path = tools/ContractFuzzer
+	url = https://github.com/gongbell/ContractFuzzer.git
