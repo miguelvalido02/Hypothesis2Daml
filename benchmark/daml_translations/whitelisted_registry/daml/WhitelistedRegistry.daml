@@ -1,0 +1,39 @@
+module WhitelistedRegistry where
+
+template WhitelistedRegistry
+  with
+    owner : Party
+    whitelisted : [Party]  -- List of whitelisted parties
+  where
+    signatory owner
+    observer whitelisted
+
+    -- 🔁 Change the owner of the registry
+    choice ChangeOwner : ContractId WhitelistedRegistry
+      with
+        newOwner : Party
+      controller owner
+      do
+        create this with owner = newOwner
+
+    -- ✅ Set or unset a party as whitelisted
+    choice SetWhitelisted : ContractId WhitelistedRegistry
+      with
+        addr : Party
+        isWhitelisted : Bool
+      controller owner
+      do
+        let newWhitelist =
+              if isWhitelisted
+              then addr :: filter (\p -> p /= addr) whitelisted
+              else filter (\p -> p /= addr) whitelisted
+        create this with whitelisted = newWhitelist
+
+    -- 🧐 Query if a party is whitelisted (non-consuming)
+    nonconsuming choice IsWhitelisted : Bool
+      with
+        addr : Party
+        caller : Party
+      controller caller
+      do
+        return (elem addr whitelisted)
