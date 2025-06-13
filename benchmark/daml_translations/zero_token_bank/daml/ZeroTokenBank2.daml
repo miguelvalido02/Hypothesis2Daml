@@ -40,7 +40,7 @@ template UserBalance
       do
         assertMsg "Deposit must be less than 200" (amount < 200.0)
         create this with
-          balance = balance + amount/2.0 -- Bug: deposit amount is halved, should be `balance + amount`
+          balance = balance + amount/2.0 -- Bug: deposit amount is halved, should be balance + amount
 
     -- 🏧 Withdraw funds (max 100 per withdrawal, must not exceed balance)
     choice Withdraw : ContractId UserBalance
