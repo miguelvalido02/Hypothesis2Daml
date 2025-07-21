@@ -30,10 +30,11 @@ data Template = Template
 instance FromJSON Template
 
 -- === Properties ===
-
+-- Prop 1
 prop_hasAtLeastOneFunction :: DamlModule -> Bool
 prop_hasAtLeastOneFunction mod = not (null (md_functions mod))
 
+-- Prop 2
 prop_allFunctionNamesAreLowercase :: DamlModule -> Bool
 prop_allFunctionNamesAreLowercase =
   all (isLowercase . fct_name) . md_functions
@@ -57,7 +58,7 @@ main = do
 
 runPropertyByName :: String -> IO ()
 runPropertyByName prop = do
-  result <- eitherDecodeFileStrict' "../daml_parser/output.json" :: IO (Either String [DamlModule])
+  result <- eitherDecodeFileStrict' "../daml_parser/output.json" :: IO (Either String [DamlModule]) -- output.json is the decoded daml file in JSON format
   case result of
     Left err -> putStrLn $ "Failed to parse JSON: " ++ err
     Right mods -> do

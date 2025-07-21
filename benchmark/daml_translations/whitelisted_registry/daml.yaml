@@ -1,5 +1,5 @@
 sdk-version: 2.9.5
-name: whitelisted_registry2
+name: whitelistedRegistry
 source: daml
 version: 1.0.0
 dependencies:
