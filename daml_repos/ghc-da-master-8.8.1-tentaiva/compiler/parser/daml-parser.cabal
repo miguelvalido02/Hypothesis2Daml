@@ -1,0 +1,48 @@
+cabal-version:   3.12
+name:            daml-parser
+version:         0.1.0.0
+license:         NONE
+author:          Valido
+maintainer:      m.valido@campus.fct.unl.pt
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
+
+common warnings
+  ghc-options: -Wall
+
+-- 📦 Define the library
+library
+  import:           warnings
+  exposed-modules:  Parser
+                   , Lexer
+                   , RdrHsSyn
+                   , ApiAnnotation
+                   , HaddockUtils
+                   , Ctype
+  other-modules:    Paths_daml_parser
+  hs-source-dirs:   .
+  build-depends:    base
+                 , containers
+                 , filepath
+                 , directory
+                 , bytestring
+                 , ghc-boot
+                 , ghc-prim
+                 , array
+  default-language: Haskell2010
+
+-- ▶️ Define the executable
+executable daml-parser
+  import:           warnings
+  main-is:          Main.hs
+  hs-source-dirs:   app
+  build-depends:    base
+                 , daml-parser
+                 , containers
+                 , filepath
+                 , directory
+                 , bytestring
+                 , ghc-boot
+                 , ghc-prim
+                 , array
+  default-language: Haskell2010

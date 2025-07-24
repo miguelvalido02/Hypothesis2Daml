@@ -64,7 +64,7 @@ module Lexer (
    commentToAnnotation
   ) where
 
-import GhcPrelude
+import Prelude
 
 -- base
 import Control.Monad

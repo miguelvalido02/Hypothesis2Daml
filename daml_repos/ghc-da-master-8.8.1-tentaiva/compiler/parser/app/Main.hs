@@ -12,6 +12,12 @@ main = do
   case args of
     [file] -> do
       content <- readFile file
-      let result = parse content
+      let result = parseModule content -- Replace 'parse' with the actual top-level parse function in Parser.hs
       print result
-    _ -> putStrLn "Usage: runhaskell Main.hs <daml-file>"
+    _ -> putStrLn "Usage: cabal run daml-parser-app <file.daml>"
+  --_ -> putStrLn "Usage: runhaskell Main.hs <daml-file>"
+
+
+
+      
+   

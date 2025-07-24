@@ -1,0 +1,13 @@
+packages:
+  .
+  ../../libraries/base
+  ../../libraries/ghc-boot
+  ../../libraries/ghc-boot-th
+  ../../libraries/ghc-compact
+  ../../libraries/ghc-heap
+  ../../libraries/ghc-prim
+  ../../libraries/ghci
+  ../../libraries/integer-gmp
+  ../../libraries/integer-simple
+  ../../libraries/libiserv
+  ../../libraries/template-haskell
