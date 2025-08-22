@@ -1,4 +1,4 @@
-sdk-version: 2.9.5
+sdk-version: 0.0.0
 name: whitelistedRegistry
 source: daml
 version: 1.0.0
