@@ -173,7 +173,7 @@ def get_balance(ub_cid: str, user: str) -> Decimal:
 @given(d=st.decimals(min_value="0.01", max_value="199.99", places=2))
 @settings(max_examples=5, deadline=None)
 def test_deposit_increases_balance(d):
-    operator = allocate_unique_party("Operator")  # unique party each example
+    operator = allocate_unique_party("Operator")  # unique party for each example
     bank = create_bank(operator)
     ub   = open_account(bank, operator, operator)
     b0   = get_balance(ub, operator)
