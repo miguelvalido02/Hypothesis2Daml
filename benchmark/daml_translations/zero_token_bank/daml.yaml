@@ -1,5 +1,5 @@
 sdk-version: 2.9.5
-name: zero_token_bank
+name: ZeroTokenBank
 source: daml
 version: 1.0.0
 dependencies:
