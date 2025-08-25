@@ -66,3 +66,25 @@ def test_deposit_increases_balance(d):
     ub   = deposit(ub, operator, Decimal(d))
     b1   = get_balance(ub, operator)
     assert b1 == b0 + Decimal(d)
+
+@given(amount=st.decimals(min_value="0.00", max_value="250.00", places=2))
+@settings(max_examples=25, deadline=None)
+def test_cannot_withdraw_any_amount_without_deposit(amount):
+    operator = allocate_unique_party("Operator")
+    alice    = allocate_unique_party("Alice")
+    bank     = create_bank(operator)
+    ub       = open_account(bank, operator, alice)
+    assert get_balance(ub, alice) == Decimal("0")
+    try:
+        make_request(
+            "exercise",
+            act_as=alice,
+            template_id=UB_TID,
+            contract_id=ub,
+            choice="Withdraw",
+            argument={"amount": str(Decimal(amount))},
+        )
+    except AssertionError:
+        return
+    raise AssertionError("expected withdrawal to fail with zero balance")
+
