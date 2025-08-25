@@ -1,0 +1,62 @@
+module TestSimpleMarket2 where
+
+import SimpleMarket
+import Daml.Script
+
+{- 
+  1. A marketplace contract is created by the owner (Bob), making an item available for sale.
+  2. The test ensures that:
+      - The owner cannot accept an offer if no offer has been placed.
+      - Only the designated buyer (Alice) can make an offer.
+      - The buyer cannot make multiple offers before the owner responds.
+      - The buyer cannot accept or reject the offer themselves.
+  3. The buyer successfully places an offer, transitioning the contract to OfferPlaced.
+  4. The owner accepts the offer, completing the transaction and transitioning to Accepted.
+  5. The buyer attempts to make another offer, but fails due to wrong state.
+-}
+
+test = script do
+  owner  <- allocateParty "Bob"  -- Owner
+  buyer <- allocateParty "Alice" -- Buyer
+
+  -- Step 1: Create the initial Market
+  itemAvailable <- submit owner do
+    createCmd Market with
+      owner = owner
+      buyer = buyer
+      item = "item"
+      state = "ItemAvailable"
+      offerPrice = 0.0
+
+  -- Make sure that the owner cannot accept offer as there is no offer
+  submitMustFail owner do
+    exerciseCmd itemAvailable AcceptOffer
+  -- Make sure that the only the buyer can make an offer
+  submitMustFail owner do
+    exerciseCmd itemAvailable MakeOffer with
+      offerPrice = 10.0
+  -- Step 2: Buyer places an offer, changing state to "OfferPlaced"
+  offerPlaced <- submit buyer do
+    exerciseCmd itemAvailable MakeOffer with
+      offerPrice = 10.0
+
+  -- Make sure that the buyer cannot make another offer
+  submitMustFail buyer do
+    exerciseCmd offerPlaced MakeOffer with
+      offerPrice = 20.0
+  -- Make sure that the buyer cannot accept the offer
+  submitMustFail buyer do
+    exerciseCmd offerPlaced AcceptOffer
+  -- Make sure that the buyer cannot reject the offer
+  submitMustFail buyer do
+    exerciseCmd offerPlaced RejectOffer
+  
+  -- Step 4: Owner accepts the offer, transitioning to "Accepted"
+  accepted <- submit owner do
+    exerciseCmd offerPlaced AcceptOffer
+
+  -- Make sure that the buyer cannot make another offer
+  submitMustFail buyer do
+    exerciseCmd accepted MakeOffer with
+      offerPrice = 30.0
+  debug accepted

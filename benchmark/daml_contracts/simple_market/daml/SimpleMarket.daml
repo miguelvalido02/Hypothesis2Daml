@@ -1,0 +1,41 @@
+module SimpleMarket where
+
+template Market
+  with
+    owner : Party    -- Role: Owner
+    buyer : Party    -- Role: Buyer --Needs to be specified when creating the contract to make sure that they have visibility/can interact with the contract
+    item : Text      -- Item name
+    state : Text     -- Current state ("ItemAvailable", "OfferPlaced", "Accept")
+    offerPrice : Decimal -- Price of the item
+  where
+    signatory owner
+    observer buyer
+
+    choice MakeOffer
+      : ContractId Market
+      with 
+      offerPrice : Decimal -- Price offered by the buyer
+        controller buyer
+        do
+          assertMsg "State must be 'ItemAvailable' to make an offer" (state == "ItemAvailable")
+          assertMsg "The owner cannot make an offer" (owner /= buyer)
+          create this with
+            state = "OfferPlaced"
+            offerPrice = offerPrice -- Update the offer price
+
+    choice AcceptOffer
+      : ContractId Market
+      controller owner
+        do
+          assertMsg "State must be 'OfferPlaced' to accept an offer" (state == "OfferPlaced")
+          create this with
+            state = "Accept" --Transition to final state
+
+    choice RejectOffer
+      : ContractId Market
+      controller owner
+        do
+          assertMsg "State must be 'OfferPlaced' to reject an offer" (state == "OfferPlaced")
+          create this with
+            state = "ItemAvailable"
+            offerPrice = 0.0 -- Reset the offer price
