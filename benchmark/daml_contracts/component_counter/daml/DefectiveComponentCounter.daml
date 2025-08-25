@@ -1,0 +1,16 @@
+module DefectiveComponentCounter where
+
+template DefectiveCounter
+  with
+    manufacturer : Party
+    defectiveComponents : Int -- Counter
+    state : Text -- Current state ("Create", "ComputeTotal")
+  where
+    signatory manufacturer
+
+    choice ComputeTotal
+      : ContractId DefectiveCounter
+      controller manufacturer
+        do
+          create this with
+            state = "ComputeTotal" -- Transition to final state

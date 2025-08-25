@@ -1,0 +1,31 @@
+module TestDefectiveComponentCounter where
+
+import DefectiveComponentCounter
+import Daml.Script
+
+{- 
+  1. A manufacturer creates a DefectiveCounter contract in the Create state with an initial count of defective components.
+  2. A random party (not the manufacturer) attempts to compute the total but fails due to access control restrictions.
+  3. The manufacturer successfully exercises ComputeTotal, transitioning the contract to the ComputeTotal state.
+-}
+
+test = script do
+  manufacturer <- allocateParty "Manufacturer"
+  random <- allocateParty "Random"
+  
+  -- Step 1: Create the initial DefectiveCounter contract in the "Create" state
+  created <- submit manufacturer do
+    createCmd DefectiveCounter with
+      manufacturer = manufacturer
+      defectiveComponents = 10
+      state = "Create"
+
+  -- Make sure random stranger can't compute the total
+  submitMustFail random do
+    exerciseCmd created ComputeTotal
+
+  -- Step 2: Compute the total, transitioning to the "ComputeTotal" state
+  computed <- submit manufacturer do
+    exerciseCmd created ComputeTotal
+  
+  debug computed

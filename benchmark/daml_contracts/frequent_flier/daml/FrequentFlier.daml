@@ -1,0 +1,37 @@
+module FrequentFlier where
+
+import DA.Foldable (sum)  
+
+template FrequentFlier
+  with
+    airlineRepresentative : Party
+    flier : Party
+    rewardsPerMile : Int
+    miles : [Int]
+    totalRewards : Int
+  where
+    signatory airlineRepresentative
+    observer flier
+
+    choice AddMiles : ContractId FrequentFlier
+      with
+        newMiles : [Int]
+      controller flier
+      do
+        let updatedMiles = miles ++ newMiles
+        let newTotalRewards = totalRewards + DA.Foldable.sum (map (\m -> m * rewardsPerMile) (drop (length miles) updatedMiles)) --Calculates only the new miles, not the ones already calculated
+        create this with
+          miles = updatedMiles
+          totalRewards = newTotalRewards
+
+    nonconsuming choice GetMiles : [Int]
+      with
+        caller : Party  -- Allow any party with visibility to call this choice
+      controller caller
+      do return miles
+
+    nonconsuming choice GetRewards : Int
+      with
+        caller : Party  -- Allow any party with visibility to call this choice
+      controller caller
+      do return totalRewards

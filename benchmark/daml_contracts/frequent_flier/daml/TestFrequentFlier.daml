@@ -1,0 +1,64 @@
+module TestFrequentFlier where
+
+import Daml.Script
+import FrequentFlier
+
+test : Script ()
+
+{- 
+  1. The airline representative (airlineRep) and a frequent flier (flier) are allocated.
+  2. The airline representative creates a FrequentFlier contract, initializing the rewards system.
+  3. The test ensures that:
+      - The airline representative cannot add miles.
+      - The frequent flier can successfully add miles.
+      - The airline representative still cannot add miles after the flier has.
+      - The airline representative can retrieve the list of miles.
+      - The airline representative can retrieve the total rewards.
+  4. The test verifies that the correct number of miles and rewards are calculated.
+-}
+
+test = script do
+  -- Allocate parties
+  airlineRep <- allocateParty "AirlineRep"
+  flier <- allocateParty "Flier"
+
+  -- Step 1: Create the FrequentFlier contract
+  contractId <- submit airlineRep do
+    createCmd FrequentFlier with
+      airlineRepresentative = airlineRep
+      flier = flier
+      rewardsPerMile = 2
+      miles = []
+      totalRewards = 0
+
+  --Make sure that airlineRep cannot add miles (should fail)
+  submitMustFail airlineRep do
+    exerciseCmd contractId AddMiles with
+      newMiles = [50, 75]
+
+  -- Step 2: Flier adds miles (allowed action)
+  contractId2 <- submit flier do
+    exerciseCmd contractId AddMiles with
+      newMiles = [100, 200]  -- Adding 2 miles entries
+
+  -- Step 3: Ensure that airlineRep party cannot add miles (should fail)
+  submitMustFail airlineRep do
+    exerciseCmd contractId2 AddMiles with
+      newMiles = [50, 75]
+
+  -- Step 4: airlineRep can call GetMiles
+  milesRetrieved <- submit airlineRep do
+    exerciseCmd contractId2 GetMiles with
+      caller = airlineRep
+
+  debug milesRetrieved  -- Should output [100, 200]
+  assert (milesRetrieved == [100, 200])
+  -- Step 5: airlineRep can call GetRewards
+  rewardsRetrieved <- submit airlineRep do
+    exerciseCmd contractId2 GetRewards with
+      caller = airlineRep
+
+  debug rewardsRetrieved  -- Should output 600 (100*2 + 200*2)
+  assert (rewardsRetrieved == 600)
+
+  debug contractId2

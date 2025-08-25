@@ -1,0 +1,59 @@
+module ZeroTokenBank2 where
+
+import Daml.Script
+import DA.Assert (assert)
+
+--The same as ZeroTokenBank.daml, but with a bug in deposit choice
+-- 🏦 Main Bank contract
+template Bank
+  with
+    operator : Party
+  where
+    signatory operator
+
+    -- 🧾 Operator creates a UserBalance contract for a given user
+    nonconsuming choice OpenAccount : ContractId UserBalance
+      with
+        user : Party
+      controller operator
+      do
+        create UserBalance with
+          bank = operator
+          user = user
+          balance = 0.0
+
+-- 👤 User-specific balance contract
+template UserBalance
+  with
+    bank : Party
+    user : Party
+    balance : Decimal
+  where
+    signatory bank
+    observer user
+
+    -- 💰 Deposit funds (max 200 per deposit)
+    choice Deposit : ContractId UserBalance
+      with
+        amount : Decimal
+      controller user
+      do
+        assertMsg "Deposit must be less than 200" (amount < 200.0)
+        create this with
+          balance = balance + amount/2.0 -- Bug: deposit amount is halved, should be balance + amount
+
+    -- 🏧 Withdraw funds (max 100 per withdrawal, must not exceed balance)
+    choice Withdraw : ContractId UserBalance
+      with
+        amount : Decimal
+      controller user
+      do
+        assertMsg "Withdrawal must be > 0" (amount > 0.0)
+        assertMsg "Cannot withdraw more than 100" (amount <= 100.0)
+        assertMsg "Insufficient balance" (amount <= balance)
+        create this with
+          balance = balance - amount
+    -- 📊 User can check their balance
+    nonconsuming choice GetBalance : Decimal
+      controller user
+      do return balance

@@ -1,0 +1,61 @@
+module TestZeroTokenBank where
+
+import Daml.Script
+import ZeroTokenBank -- Replace with ZeroTokenBank2 and the test will fail
+import DA.Assert
+
+testZeroTokenBank : Script ()
+testZeroTokenBank = script do
+  -- Allocate parties
+  bankOperator <- allocateParty "BankOperator"
+  alice <- allocateParty "Alice"
+
+  -- Create bank contract
+  bank <- submit bankOperator do
+    createCmd Bank with
+      operator = bankOperator
+
+  -- Bank operator opens account for Alice
+  aliceAcct <- submit bankOperator do
+    exerciseCmd bank OpenAccount with user = alice
+
+  -- Initially Alice has 0 balance
+  bal0 <- submit alice do
+    exerciseCmd aliceAcct GetBalance
+  assertEq bal0 0.0
+
+  -- Alice deposits 150 tokens
+  aliceAcct1 <- submit alice do
+    exerciseCmd aliceAcct Deposit with amount = 150.0
+
+  -- Balance should now be 150
+  bal1 <- submit alice do
+    exerciseCmd aliceAcct1 GetBalance
+  assertEq bal1 150.0
+
+  -- Alice withdraws 100 tokens
+  aliceAcct2 <- submit alice do
+    exerciseCmd aliceAcct1 Withdraw with amount = 100.0
+
+  -- Balance should now be 50
+  bal2 <- submit alice do
+    exerciseCmd aliceAcct2 GetBalance
+  assertEq bal2 50.0
+
+  -- Rejected: Alice tries to deposit 250 tokens (exceeds cap)
+  submitMustFail alice do
+    exerciseCmd aliceAcct2 Deposit with amount = 250.0
+
+  -- Rejected: Alice tries to withdraw more than 100
+  submitMustFail alice do
+    exerciseCmd aliceAcct2 Withdraw with amount = 150.0
+
+  -- Rejected: Alice tries to withdraw more than her balance (50)
+  submitMustFail alice do
+    exerciseCmd aliceAcct2 Withdraw with amount = 75.0
+
+  -- Rejected: Alice tries to withdraw 0
+  submitMustFail alice do
+    exerciseCmd aliceAcct2 Withdraw with amount = 0.0
+
+  debug "All ZeroTokenBank tests passed."

@@ -1,0 +1,10 @@
+sdk-version: 2.9.5
+name: DefectiveComponentCounter
+source: daml
+version: 1.0.0
+dependencies:
+  - daml-prim
+  - daml-stdlib
+  - daml-script
+sandbox-options:
+  - --wall-clock-time

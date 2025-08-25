@@ -1,0 +1,50 @@
+module TestWhitelistedRegistry where
+
+import Daml.Script
+import WhitelistedRegistry
+
+testWhitelistedRegistry : Script ()
+testWhitelistedRegistry = script do
+  -- Allocate parties
+  owner <- allocateParty "Owner"
+  alice <- allocateParty "Alice"
+  bob <- allocateParty "Bob"
+  random <- allocateParty "Random"
+
+  -- Step 1: Create the registry with Alice initially whitelisted
+  registry <- submit owner do
+    createCmd WhitelistedRegistry with
+      owner = owner
+      whitelisted = [alice]
+
+  -- Step 2: Owner successfully adds Bob to the whitelist
+  registry2 <- submit owner do
+    exerciseCmd registry SetWhitelisted with
+      addr = bob
+      isWhitelisted = True
+
+  -- Step 3: Ensure non-owners (like Alice or Random) cannot call SetWhitelisted
+  submitMustFail alice do
+    exerciseCmd registry2 SetWhitelisted with
+      addr = random
+      isWhitelisted = True
+
+  submitMustFail random do
+    exerciseCmd registry2 SetWhitelisted with
+      addr = random
+      isWhitelisted = True
+
+  -- Step 4: Both Alice and Bob should be able to query IsWhitelisted
+  isAliceWhitelisted <- submit alice do
+    exerciseCmd registry2 IsWhitelisted with addr = alice, caller = alice
+  assert (isAliceWhitelisted == True)
+
+  isBobWhitelisted <- submit bob do
+    exerciseCmd registry2 IsWhitelisted with addr = bob, caller = bob
+  assert (isBobWhitelisted == True)
+
+  -- Step 5: Random should not be able to call IsWhitelisted
+  submitMustFail random do
+    exerciseCmd registry2 IsWhitelisted with addr = alice, caller = random
+
+  return ()
