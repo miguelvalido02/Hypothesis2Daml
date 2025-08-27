@@ -1,0 +1,42 @@
+module TestDigitalLocker4 where
+
+import Daml.Script
+import DigitalLocker
+
+{- 
+  1. The owner creates a DigitalLocker contract in the Requested state.
+  2. The test fails when ShareWithThirdParty succeeds
+-}
+
+testDigitalLocker = script do
+  -- 🎭 Allocate parties
+  owner <- allocateParty "Owner"
+  bankAgent <- allocateParty "BankAgent"
+  thirdParty1 <- allocateParty "ThirdParty1"
+  thirdParty2 <- allocateParty "ThirdParty2"
+
+  -- Step 1: Owner creates the DigitalLocker (Requested state)
+  locker <- submit owner do
+    createCmd DigitalLocker with
+      owner = owner
+      bankAgent = bankAgent
+      thirdParties = [thirdParty1, thirdParty2]
+      currentAuthorizedUser = None
+      lockerStatus = "Created"
+      image = None
+      lockerFriendlyName = "My Secure Locker"
+      expirationDate = None
+      lockerIdentifier = None
+      intendedPurpose = None
+      rejectionReason = None
+      thirdPartyRequestor = None
+      state = Requested
+
+  -- Make sure that ShareWithThirdParty fails due to the state
+  submitMustFail owner do
+    exerciseCmd locker ShareWithThirdParty with
+      recipient = thirdParty1
+      expDate = "2024-12-31"
+      purpose = "For verification"
+
+  debug locker

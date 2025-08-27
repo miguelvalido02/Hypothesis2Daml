@@ -1,0 +1,134 @@
+module TestDigitalLocker2 where
+
+import Daml.Script
+import DigitalLocker
+
+{- 
+  In every state transition, we ensure that unauthorized users cannot terminate the locker.
+  1. The owner creates a DigitalLocker contract in the Requested state.
+  2. The test ensures that:
+      - Unauthorized users (owner, third parties) cannot begin the review process.
+      - Only the bank agent can transition the contract to DocumentReview.
+      - Unauthorized users cannot upload documents.
+  3. The bank agent successfully uploads documents, transitioning to AvailableToShare.
+  4. A third party requests access, transitioning the contract to SharingRequestPending.
+  5. The test ensures that:
+      - Only the owner can accept or reject a sharing request.
+      - Another third party cannot request access while a request is pending.
+  6. The owner rejects the request, reverting back to AvailableToShare.
+  7. The test ensures that:
+      - The bank agent can terminate the contract, transitioning to Terminated.
+-}
+
+testDigitalLocker = script do
+  -- 🎭 Allocate parties
+  owner <- allocateParty "Owner"
+  bankAgent <- allocateParty "BankAgent"
+  thirdParty1 <- allocateParty "ThirdParty1"
+  thirdParty2 <- allocateParty "ThirdParty2"
+
+  -- Step 1: Owner creates the DigitalLocker (Requested state)
+  locker <- submit owner do
+    createCmd DigitalLocker with
+      owner = owner
+      bankAgent = bankAgent
+      thirdParties = [thirdParty1, thirdParty2]
+      currentAuthorizedUser = None
+      lockerStatus = "Created"
+      image = None
+      lockerFriendlyName = "My Secure Locker"
+      expirationDate = None
+      lockerIdentifier = None
+      intendedPurpose = None
+      rejectionReason = None
+      thirdPartyRequestor = None
+      state = Requested
+
+  -- Make sure that third parties and owner cannot begin review process
+  submitMustFail thirdParty1 do
+    exerciseCmd locker BeginReviewProcess
+  
+  submitMustFail owner do
+    exerciseCmd locker BeginReviewProcess
+
+  -- Make sure that unauthorized users cannot terminate the locker
+  submitMustFail owner do
+    exerciseCmd locker Terminate
+
+  -- Step 2: BankAgent begins review process (Requested → DocumentReview)
+  lockerDocReview <- submit bankAgent do
+    exerciseCmd locker BeginReviewProcess
+
+    -- Make sure that unauthorized users cannot terminate the locker
+  submitMustFail owner do
+    exerciseCmd locker Terminate
+
+  -- Make sure that unauthorized users cannot upload documents
+  submitMustFail thirdParty1 do
+    exerciseCmd lockerDocReview UploadDocuments with
+      identifier = "Locker321"
+      img = "Another Image"
+  
+  submitMustFail owner do
+    exerciseCmd lockerDocReview UploadDocuments with
+      identifier = "Locker321"
+      img = "Another image"
+
+  -- Step 3: BankAgent uploads documents (DocumentReview → AvailableToShare)
+  lockerAvailable <- submit bankAgent do
+    exerciseCmd lockerDocReview UploadDocuments with
+      identifier = "Locker321"
+      img = "Another Image"
+
+    -- Make sure that unauthorized users cannot terminate the locker
+  submitMustFail owner do
+    exerciseCmd locker Terminate
+
+  -- Step 4: ThirdParty1 requests access (AvailableToShare → SharingRequestPending)
+  lockerPending <- submit thirdParty1 do
+    exerciseCmd lockerAvailable RequestLockerAccess with
+      requestor = thirdParty1
+      purpose = "Another Purpose"
+
+    -- Make sure that unauthorized users cannot terminate the locker
+  submitMustFail owner do
+    exerciseCmd locker Terminate
+    
+  --Make sure that unauthorized users cannot accept nor reject sharing requests
+  submitMustFail thirdParty1 do
+    exerciseCmd lockerPending AcceptSharingRequest
+
+  submitMustFail thirdParty2 do
+    exerciseCmd lockerPending AcceptSharingRequest
+
+  submitMustFail thirdParty2 do
+    exerciseCmd lockerPending RejectSharingRequest
+
+  submitMustFail thirdParty1 do
+    exerciseCmd lockerPending RejectSharingRequest
+
+  --Make sure that another user cannot request access
+  submitMustFail thirdParty2 do
+    exerciseCmd lockerPending RequestLockerAccess with
+      requestor = thirdParty2
+      purpose = "For Verification"
+
+  -- Step 5: Owner rejects the request (SharingRequestPending → AvailableToShare)
+  lockerReverted <- submit owner do
+    exerciseCmd lockerPending RejectSharingRequest
+
+  -- Make sure that unauthorized users cannot terminate the locker
+  submitMustFail thirdParty2 do
+    exerciseCmd lockerReverted Terminate
+  
+  submitMustFail thirdParty1 do
+    exerciseCmd lockerReverted Terminate
+
+  submitMustFail owner do
+    exerciseCmd lockerReverted Terminate
+
+  -- Step 6: BankAgent terminates the locker (Any State → Terminated)
+  lockerTerminated <- submit bankAgent do
+    exerciseCmd lockerReverted Terminate
+
+  debug lockerTerminated

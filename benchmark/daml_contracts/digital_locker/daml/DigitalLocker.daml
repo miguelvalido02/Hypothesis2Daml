@@ -1,0 +1,134 @@
+module DigitalLocker where
+
+import DA.Optional ()
+
+data StateType = Requested | DocumentReview | AvailableToShare | SharingRequestPending | SharingWithThirdParty | Terminated
+  deriving (Eq, Show)
+
+template DigitalLocker
+  with
+    owner : Party
+    state : StateType
+    bankAgent : Party
+    thirdParties : [Party]  -- List of third-party observers to make sure they have visibility/can interact with the contract
+    currentAuthorizedUser : Optional Party
+
+    lockerStatus : Text
+    image : Optional Text
+    lockerFriendlyName : Text
+    expirationDate : Optional Text
+    lockerIdentifier : Optional Text
+    intendedPurpose : Optional Text
+    rejectionReason : Optional Text
+    thirdPartyRequestor : Optional Party
+
+  where
+    signatory owner
+    observer (bankAgent :: thirdParties)
+
+    -- Transition: Requested → DocumentReview
+    choice BeginReviewProcess : ContractId DigitalLocker
+      controller bankAgent
+      do
+        assert (state == Requested)
+        create this with
+          lockerStatus = "Pending"
+          state = DocumentReview
+
+    -- Transition: DocumentReview → AvailableToShare
+    choice UploadDocuments : ContractId DigitalLocker
+      with
+        identifier : Text
+        img : Text
+      controller bankAgent
+      do
+        create this with
+          state = AvailableToShare
+          lockerStatus = "Approved"
+          lockerIdentifier = Some identifier
+          image = Some img
+
+    -- Third-party requestor requests access (AvailableToShare → SharingRequestPending)
+    choice RequestLockerAccess : ContractId DigitalLocker
+      with
+        requestor : Party
+        purpose : Text
+      controller requestor
+      do
+        assert (state == AvailableToShare)
+        create this with
+          state = SharingRequestPending
+          thirdPartyRequestor = Some requestor
+          currentAuthorizedUser = None
+          intendedPurpose = Some purpose
+
+    -- Owner accepts third-party request (SharingRequestPending → SharingWithThirdParty)
+    choice AcceptSharingRequest : ContractId DigitalLocker
+      controller owner
+      do
+        assert (state == SharingRequestPending)
+        case thirdPartyRequestor of
+          Some requestor ->
+            create this with
+              state = SharingWithThirdParty
+              currentAuthorizedUser = Some requestor
+          None -> error "No third-party requestor found"
+
+    -- Owner rejects third-party request (SharingRequestPending → AvailableToShare)
+    choice RejectSharingRequest : ContractId DigitalLocker
+      controller owner
+      do
+        assert (state == SharingRequestPending)
+        create this with
+          lockerStatus = "Available"
+          thirdPartyRequestor = None
+          currentAuthorizedUser = None
+          state = AvailableToShare
+
+    -- Owner shares directly with a third party (AvailableToShare → SharingWithThirdParty)
+    choice ShareWithThirdParty : ContractId DigitalLocker
+      with
+        recipient : Party
+        expDate : Text
+        purpose : Text
+      controller owner
+      do
+        create this with
+          thirdPartyRequestor = Some recipient
+          currentAuthorizedUser = Some recipient
+          expirationDate = Some expDate
+          intendedPurpose = Some purpose
+          lockerStatus = "Shared"
+          state = SharingWithThirdParty
+
+    -- Third party releases access (SharingWithThirdParty → AvailableToShare)
+    choice ReleaseLockerAccess : ContractId DigitalLocker
+      controller currentAuthorizedUser
+      do
+        assert (state == SharingWithThirdParty)
+        create this with
+          lockerStatus = "Available"
+          thirdPartyRequestor = None
+          currentAuthorizedUser = None
+          intendedPurpose = None
+          state = AvailableToShare
+
+    -- Owner revokes third-party access (SharingWithThirdParty → AvailableToShare)
+    choice RevokeAccessFromThirdParty : ContractId DigitalLocker
+      controller owner
+      do
+        assert (state == SharingWithThirdParty)
+        create this with
+          lockerStatus = "Available"
+          intendedPurpose = None
+          thirdPartyRequestor = None
+          currentAuthorizedUser = None
+          state = AvailableToShare
+
+    -- 🔹 Terminate contract (Can be done at any time)
+    choice Terminate : ContractId DigitalLocker
+      controller bankAgent
+      do 
+        create this with 
+          currentAuthorizedUser = None
+          state = Terminated
