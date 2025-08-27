@@ -6811,3 +6811,64 @@ participants {
 2025-08-25 13:18:03,307 [canton-env-ec-42] INFO  c.d.c.d.s.s.GrpcSequencerService:domain=local tid:d78b0b1a0253bf04a4a40b001327e3dc - 'PAR::sandbox::1220901803a3...' sends request with id 'tick-62dd6fdc-9287-495d-8a1a-3c7d2afbdd8b' of size 338 bytes with 0 envelopes.
 2025-08-25 13:18:04,140 [canton-env-ec-94] INFO  c.d.c.d.s.s.GrpcSequencerService:domain=local tid:d78b0b1a0253bf04a4a40b001327e3dc - 'PAR::sandbox::1220901803a3...' sends request with id 'tick-c6d62fae-6f24-4bac-b6d6-9abfe71ed92a' of size 338 bytes with 0 envelopes.
 2025-08-25 13:18:04,807 [canton-env-ec-94] INFO  c.d.c.d.s.s.GrpcSequencerService:domain=local tid:d78b0b1a0253bf04a4a40b001327e3dc - 'PAR::sandbox::1220901803a3...' sends request with id 'tick-de6467b0-8259-4762-b461-408d716faa54' of size 338 bytes with 0 envelopes.
+2025-08-25 13:25:26,273 [Thread-0] INFO  c.d.canton.CantonCommunityApp$ - Shutting down...
+2025-08-25 13:25:26,280 [Thread-0] INFO  c.d.c.e.CommunityEnvironment - Closing environment...
+2025-08-25 13:25:26,284 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthComponent:participant=sandbox - 'sync-domain' is now in state Failed(Component is closed). Previous state was Ok().
+2025-08-25 13:25:26,284 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthComponent:participant=sandbox - 'sync-domain-ephemeral' is now in state Failed(Component is closed). Previous state was Ok().
+2025-08-25 13:25:26,284 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthComponent:participant=sandbox - 'sequencer-client' is now in state Failed(Component is closed). Previous state was Ok().
+2025-08-25 13:25:26,284 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthComponent:participant=sandbox - 'acs-commitment-processor' is now in state Failed(Component is closed). Previous state was Ok().
+2025-08-25 13:25:26,295 [canton-env-ec-36] INFO  c.d.c.p.ParticipantNode:participant=sandbox - Stopping participant node
+2025-08-25 13:25:26,303 [canton-env-ec-86] INFO  c.d.c.n.g.ApiRequestLogger:participant=sandbox tid:8e1f6de757a1a44a884cf110eebbb02d - Request c.d.l.a.v.TransactionService/GetTransactions by /127.0.0.1:47596: cancelled
+2025-08-25 13:25:26,319 [canton-env-ec-37] INFO  c.d.c.p.a.s.c.CommandServiceImpl:participant=sandbox - Shutting down Command Service.
+2025-08-25 13:25:26,337 [canton-env-ec-35] INFO  com.zaxxer.hikari.HikariDataSource - daml.index.db.connection.api-server - Shutdown initiated...
+2025-08-25 13:25:26,479 [canton-env-ec-35] INFO  com.zaxxer.hikari.HikariDataSource - daml.index.db.connection.api-server - Shutdown completed.
+2025-08-25 13:25:26,480 [canton-env-ec-35] INFO  c.d.c.p.i.RecoveringIndexer:participant=sandbox - Stopping Indexer Server
+2025-08-25 13:25:26,482 [canton-env-ec-34] INFO  com.zaxxer.hikari.HikariDataSource - daml.index.db.connection.indexer - Shutdown initiated...
+2025-08-25 13:25:26,483 [canton-env-ec-34] INFO  com.zaxxer.hikari.HikariDataSource - daml.index.db.connection.indexer - Shutdown completed.
+2025-08-25 13:25:26,484 [canton-env-ec-34] INFO  c.d.c.p.i.RecoveringIndexer:participant=sandbox - Successfully finished processing state updates
+2025-08-25 13:25:26,484 [canton-env-ec-34] INFO  c.d.c.p.i.p.ParallelIndexerFactory$:participant=sandbox - Indexing finished.
+2025-08-25 13:25:26,484 [canton-env-ec-34] INFO  c.d.c.p.i.RecoveringIndexer:participant=sandbox - Stopped Indexer Server
+2025-08-25 13:25:26,486 [canton-env-ec-94] INFO  c.d.c.p.DispatcherState:participant=sandbox - Shutting down Ledger API offset dispatcher state.
+2025-08-25 13:25:26,493 [canton-env-ec-94] INFO  c.d.c.p.DispatcherState:participant=sandbox - Ledger API offset dispatcher shutdown.
+2025-08-25 13:25:26,929 [canton-env-ec-36] INFO  c.d.c.p.s.SyncDomain:participant=sandbox/domainId=local::1220a0cd033e - 'sync-domain' is now in state Failed(Disconnected from domain). Previous state was Ok().
+2025-08-25 13:25:26,929 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthComponent:participant=sandbox - 'sync-domain' is now in state Failed(Disconnected from domain). Previous state was Ok().
+2025-08-25 13:25:26,931 [canton-env-ec-36] INFO  c.d.c.s.c.ResilientSequencerSubscription:participant=sandbox/domainId=local::1220a0cd033e - 'sequencer-client' is now in state Failed(Disconnected from domain). Previous state was Ok().
+2025-08-25 13:25:26,931 [canton-env-ec-36] INFO  c.d.c.h.DelegatingMutableHealthComponent:participant=sandbox/domainId=local::1220a0cd033e - 'sequencer-client' is now in state Failed(Disconnected from domain). Previous state was Ok().
+2025-08-25 13:25:26,931 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthComponent:participant=sandbox - 'sequencer-client' is now in state Failed(Disconnected from domain). Previous state was Ok().
+2025-08-25 13:25:26,932 [canton-env-ec-42] INFO  c.d.c.s.c.t.GrpcSequencerSubscription:participant=sandbox/domainId=local::1220a0cd033e - GRPC subscription successfully closed due to client shutdown.
+2025-08-25 13:25:26,933 [canton-env-ec-86] INFO  c.d.c.n.g.ApiRequestLogger:domain=local tid:77c1548576619f015c7915dc624159fc - Request c.d.c.d.a.v.SequencerService/SubscribeVersioned by /127.0.0.1:56456: cancelled
+2025-08-25 13:25:26,935 [canton-env-ec-36] INFO  c.d.c.p.p.AcsCommitmentProcessor:participant=sandbox/domainId=local::1220a0cd033e - 'acs-commitment-processor' is now in state Failed(Disconnected from domain). Previous state was Ok().
+2025-08-25 13:25:26,935 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthComponent:participant=sandbox - 'acs-commitment-processor' is now in state Failed(Disconnected from domain). Previous state was Ok().
+2025-08-25 13:25:26,935 [canton-env-ec-34] INFO  c.d.c.p.s.CantonSyncService:participant=sandbox - Domain 'local' disconnected because sequencer client was closed
+2025-08-25 13:25:26,939 [canton-env-ec-36] INFO  c.d.c.p.s.SyncDomainEphemeralState:participant=sandbox/domain-alias=local - 'sync-domain-ephemeral' is now in state Failed(Disconnected from domain). Previous state was Ok().
+2025-08-25 13:25:26,939 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthComponent:participant=sandbox - 'sync-domain-ephemeral' is now in state Failed(Disconnected from domain). Previous state was Ok().
+2025-08-25 13:25:26,942 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthComponent:participant=sandbox - 'sync-domain' is now in state Failed(Component is closed). Previous state was Failed(Disconnected from domain).
+2025-08-25 13:25:26,942 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthComponent:participant=sandbox - 'sync-domain-ephemeral' is now in state Failed(Component is closed). Previous state was Failed(Disconnected from domain).
+2025-08-25 13:25:26,943 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthComponent:participant=sandbox - 'sequencer-client' is now in state Failed(Component is closed). Previous state was Failed(Disconnected from domain).
+2025-08-25 13:25:26,943 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthComponent:participant=sandbox - 'acs-commitment-processor' is now in state Failed(Component is closed). Previous state was Failed(Disconnected from domain).
+2025-08-25 13:25:26,943 [canton-env-ec-36] INFO  c.d.c.r.MemoryStorage:participant=sandbox - 'memory_storage' is now in state Failed(Component is closed). Previous state was Ok().
+2025-08-25 13:25:26,943 [canton-env-ec-36] INFO  c.d.c.p.ParticipantNodeBootstrap:participant=sandbox - 'participant' is now in state ServingStatus(status = 'NOT_SERVING'). Previous state was ServingStatus(status = 'SERVING').
+2025-08-25 13:25:26,944 [canton-env-ec-36] INFO  c.d.c.c.Crypto:participant=sandbox - 'crypto' is now in state Failed(Component is closed). Previous state was Ok().
+2025-08-25 13:25:26,944 [canton-env-ec-36] INFO  c.d.c.c.p.t.TinkPrivateCrypto:participant=sandbox - 'tink-private-crypto' is now in state Failed(Component is closed). Previous state was Ok().
+2025-08-25 13:25:26,947 [canton-env-ec-36] INFO  c.d.c.d.DomainNodeBootstrap:domain=local - Stopping domain node
+2025-08-25 13:25:26,950 [canton-env-ec-36] INFO  c.d.c.d.t.DomainTopologySender$Impl:domain=local/identity - 'domain-topology-sender' is now in state Failed(Component is closed). Previous state was Ok().
+2025-08-25 13:25:26,950 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthComponent:domain=local - 'domain-topology-sender' is now in state Failed(Component is closed). Previous state was Ok().
+2025-08-25 13:25:26,951 [canton-env-ec-36] INFO  c.d.c.s.c.ResilientSequencerSubscription:domain=local/client=topology-manager - 'sequencer-client' is now in state Failed(Disconnected from domain). Previous state was Ok().
+2025-08-25 13:25:26,951 [canton-env-ec-36] INFO  c.d.c.h.DelegatingMutableHealthComponent:domain=local/client=topology-manager - 'sequencer-client' is now in state Failed(Disconnected from domain). Previous state was Ok().
+2025-08-25 13:25:26,952 [canton-env-ec-94] INFO  c.d.c.s.c.t.GrpcSequencerSubscription:domain=local/client=topology-manager - GRPC subscription successfully closed due to client shutdown.
+2025-08-25 13:25:26,952 [canton-env-ec-35] INFO  c.d.c.n.g.ApiRequestLogger:domain=local tid:ac5bfcb115b0e7bdda7bb99962730bf1 - Request c.d.c.d.a.v.SequencerService/SubscribeVersioned by /127.0.0.1:56350: cancelled
+2025-08-25 13:25:26,955 [canton-env-ec-36] INFO  c.d.c.s.c.ResilientSequencerSubscription:domain=local/client=mediator - 'sequencer-client' is now in state Failed(Disconnected from domain). Previous state was Ok().
+2025-08-25 13:25:26,956 [canton-env-ec-36] INFO  c.d.c.h.DelegatingMutableHealthComponent:domain=local/client=mediator - 'sequencer-client' is now in state Failed(Disconnected from domain). Previous state was Ok().
+2025-08-25 13:25:26,956 [canton-env-ec-94] INFO  c.d.c.s.c.t.GrpcSequencerSubscription:domain=local/client=mediator - GRPC subscription successfully closed due to client shutdown.
+2025-08-25 13:25:26,957 [canton-env-ec-94] INFO  c.d.c.n.g.ApiRequestLogger:domain=local tid:af00ccbede49db98e37103ebe56a8b4b - Request c.d.c.d.a.v.SequencerService/SubscribeVersioned by /127.0.0.1:56368: cancelled
+2025-08-25 13:25:26,961 [canton-env-ec-36] INFO  c.d.c.d.s.s.DatabaseSequencer:domain=local - 'sequencer' is now in state SequencerHealthStatus(active = false, details = Sequencer is closed). Previous state was SequencerHealthStatus(active = true).
+2025-08-25 13:25:26,961 [canton-env-ec-36] INFO  c.d.c.h.MutableHealthQuasiComponent:domain=local - 'sequencer' is now in state SequencerHealthStatus(active = false, details = Sequencer is closed). Previous state was SequencerHealthStatus(active = true).
+2025-08-25 13:25:26,961 [canton-env-ec-36] INFO  c.d.c.d.DomainNodeBootstrap:domain=local - 'sequencer-health-check-service' is now in state ServingStatus(status = 'NOT_SERVING'). Previous state was ServingStatus(status = 'SERVING').
+2025-08-25 13:25:26,962 [canton-env-ec-36] INFO  c.d.c.d.s.SequencerRuntime:domain=local - Sequencer is healthy
+2025-08-25 13:25:26,968 [canton-env-ec-36] INFO  c.d.c.r.MemoryStorage:domain=local - 'memory_storage' is now in state Failed(Component is closed). Previous state was Ok().
+2025-08-25 13:25:26,968 [canton-env-ec-36] INFO  c.d.c.d.DomainNodeBootstrap:domain=local - 'domain' is now in state ServingStatus(status = 'NOT_SERVING'). Previous state was ServingStatus(status = 'SERVING').
+2025-08-25 13:25:26,968 [canton-env-ec-36] INFO  c.d.c.crypto.Crypto:domain=local - 'crypto' is now in state Failed(Component is closed). Previous state was Ok().
+2025-08-25 13:25:26,969 [canton-env-ec-36] INFO  c.d.c.c.p.t.TinkPrivateCrypto:domain=local - 'tink-private-crypto' is now in state Failed(Component is closed). Previous state was Ok().
+2025-08-25 13:25:26,992 [canton-env-ec-86] INFO  o.a.pekko.actor.CoordinatedShutdown - Running CoordinatedShutdown with reason [ActorSystemTerminateReason]
+2025-08-25 13:25:27,021 [Thread-0] INFO  c.d.canton.CantonCommunityApp$ - Shutdown complete.
+2025-08-25 13:25:27,021 [Thread-0] INFO  c.d.canton.CantonCommunityApp$ - Shutting down logger. Bye bye.
