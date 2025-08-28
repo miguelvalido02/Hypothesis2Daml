@@ -22,6 +22,7 @@ def state_of(p: dict) -> str:
     return s if isinstance(s, str) else str(s)
 
 def create_asset(owner: str, buyers: list[str], desc: str, asking: Decimal) -> str:
+    # State after create: Active (no buyer/inspector/appraiser; no offerPrice)
     payload = {
         "owner": owner,
         "potentialBuyers": buyers,
@@ -37,48 +38,57 @@ def create_asset(owner: str, buyers: list[str], desc: str, asking: Decimal) -> s
     return res["contractId"]
 
 def make_offer(cid: str, buyer: str, inspector: str, appraiser: str, price: Decimal) -> str:
+    # State after MakeOffer: OfferPlaced (buyer/inspector/appraiser set; offerPrice set; potentialBuyers extended)
     res = make_request("exercise", act_as=buyer, template_id=AT_TID, contract_id=cid,
                        choice="MakeOffer",
                        argument={"buyerParty": buyer, "newInspector": inspector, "newAppraiser": appraiser, "newOfferPrice": str(price)})
     return res["exerciseResult"]
 
 def modify_offer(cid: str, buyer: str, price: Decimal) -> str:
+    # State after ModifyOffer: still OfferPlaced (offerPrice updated)
     res = make_request("exercise", act_as=buyer, template_id=AT_TID, contract_id=cid,
                        choice="ModifyOffer",
                        argument={"newOfferPrice": str(price)})
     return res["exerciseResult"]
 
 def accept_offer(cid: str, owner: str) -> str:
+    # State after AcceptOffer: PendingInspection
     res = make_request("exercise", act_as=owner, template_id=AT_TID, contract_id=cid,
                        choice="AcceptOffer", argument={})
     return res["exerciseResult"]
 
 def reject_offer(cid: str, owner: str) -> str:
+    # State after Reject: Active (buyer/offerPrice/inspector/appraiser cleared)
     res = make_request("exercise", act_as=owner, template_id=AT_TID, contract_id=cid,
                        choice="Reject", argument={})
     return res["exerciseResult"]
 
 def rescind_offer(cid: str, buyer: str) -> str:
+    # State after RescindOffer: Active (similar clear as Reject)
     res = make_request("exercise", act_as=buyer, template_id=AT_TID, contract_id=cid,
                        choice="RescindOffer", argument={})
     return res["exerciseResult"]
 
 def mark_inspected(cid: str, inspector: str) -> str:
+    # State after MarkInspected: PendingInspection→Inspected, or Appraised→NotionalAcceptance
     res = make_request("exercise", act_as=inspector, template_id=AT_TID, contract_id=cid,
                        choice="MarkInspected", argument={})
     return res["exerciseResult"]
 
 def mark_appraised(cid: str, appraiser: str) -> str:
+    # State after MarkAppraised: PendingInspection→Appraised, or Inspected→NotionalAcceptance
     res = make_request("exercise", act_as=appraiser, template_id=AT_TID, contract_id=cid,
                        choice="MarkAppraised", argument={})
     return res["exerciseResult"]
 
 def accept_seller(cid: str, owner: str) -> str:
+    # State after Accept (seller): NotionalAcceptance/BuyerAccepted→SellerAccepted
     res = make_request("exercise", act_as=owner, template_id=AT_TID, contract_id=cid,
                        choice="Accept", argument={})
     return res["exerciseResult"]
 
 def accept_by_buyer(cid: str, buyer: str) -> str:
+    # State after AcceptByBuyer: NotionalAcceptance→BuyerAccepted, or SellerAccepted→Accepted
     res = make_request("exercise", act_as=buyer, template_id=AT_TID, contract_id=cid,
                        choice="AcceptByBuyer", argument={})
     return res["exerciseResult"]
@@ -92,8 +102,8 @@ def test_make_offer_sets_fields(desc, asking, offer):
     insp  = allocate_unique_party("Inspector")
     appr  = allocate_unique_party("Appraiser")
 
-    cid = create_asset(owner, [b1, b2], desc, asking)
-    cid = make_offer(cid, b1, insp, appr, offer)
+    cid = create_asset(owner, [b1, b2], desc, asking)  # Active
+    cid = make_offer(cid, b1, insp, appr, offer)       # → OfferPlaced
     p = fetch_payload(cid, owner)
 
     assert state_of(p) == "OfferPlaced"
@@ -112,9 +122,9 @@ def test_reject_resets_fields(desc, asking, offer):
     insp  = allocate_unique_party("Inspector")
     appr  = allocate_unique_party("Appraiser")
 
-    cid = create_asset(owner, [b1, b2], desc, asking)
-    cid = make_offer(cid, b1, insp, appr, offer)
-    cid = reject_offer(cid, owner)
+    cid = create_asset(owner, [b1, b2], desc, asking)  # Active
+    cid = make_offer(cid, b1, insp, appr, offer)       # → OfferPlaced
+    cid = reject_offer(cid, owner)                      # → Active (cleared fields)
     p = fetch_payload(cid, owner)
 
     assert state_of(p) == "Active"
@@ -132,16 +142,16 @@ def test_inspection_appraisal_converge_to_notional_acceptance(desc, asking, offe
     insp  = allocate_unique_party("Inspector")
     appr  = allocate_unique_party("Appraiser")
 
-    cid = create_asset(owner, [b1, b2], desc, asking)
-    cid = make_offer(cid, b1, insp, appr, offer)
-    cid = accept_offer(cid, owner)
+    cid = create_asset(owner, [b1, b2], desc, asking)  # Active
+    cid = make_offer(cid, b1, insp, appr, offer)       # → OfferPlaced
+    cid = accept_offer(cid, owner)                      # → PendingInspection
 
     if first_inspect:
-        cid = mark_inspected(cid, insp)
-        cid = mark_appraised(cid, appr)
+        cid = mark_inspected(cid, insp)                # PendingInspection→Inspected
+        cid = mark_appraised(cid, appr)                # Inspected→NotionalAcceptance
     else:
-        cid = mark_appraised(cid, appr)
-        cid = mark_inspected(cid, insp)
+        cid = mark_appraised(cid, appr)                # PendingInspection→Appraised
+        cid = mark_inspected(cid, insp)                # Appraised→NotionalAcceptance
 
     p = fetch_payload(cid, owner)
     assert state_of(p) == "NotionalAcceptance"
@@ -155,23 +165,24 @@ def test_acceptance_paths_and_guards(desc, asking, offer, buyer_first, offer2):
     insp  = allocate_unique_party("Inspector")
     appr  = allocate_unique_party("Appraiser")
 
-    cid = create_asset(owner, [b1, b2], desc, asking)
-    cid = make_offer(cid, b1, insp, appr, offer)
-    cid = accept_offer(cid, owner)
-    cid = mark_inspected(cid, insp)
-    cid = mark_appraised(cid, appr)
+    cid = create_asset(owner, [b1, b2], desc, asking)  # Active
+    cid = make_offer(cid, b1, insp, appr, offer)       # → OfferPlaced
+    cid = accept_offer(cid, owner)                      # → PendingInspection
+    cid = mark_inspected(cid, insp)                     # → Inspected
+    cid = mark_appraised(cid, appr)                     # Inspected→NotionalAcceptance
 
     if buyer_first:
-        cid = accept_by_buyer(cid, b1)
-        cid = accept_seller(cid, owner)
-        cid = accept_by_buyer(cid, b1)
+        cid = accept_by_buyer(cid, b1)                 # NotionalAcceptance→BuyerAccepted
+        cid = accept_seller(cid, owner)                # BuyerAccepted→SellerAccepted
+        cid = accept_by_buyer(cid, b1)                 # SellerAccepted→Accepted
     else:
-        cid = accept_seller(cid, owner)
-        cid = accept_by_buyer(cid, b1)
+        cid = accept_seller(cid, owner)                # NotionalAcceptance→SellerAccepted
+        cid = accept_by_buyer(cid, b1)                 # SellerAccepted→Accepted
 
     p = fetch_payload(cid, owner)
     assert state_of(p) == "Accepted"
 
+    # Guards: Terminate and RescindOffer must fail once Accepted
     try:
         make_request("exercise", act_as=owner, template_id=AT_TID, contract_id=cid, choice="Terminate", argument={})
         assert False, "Terminate should fail in Accepted"
@@ -193,9 +204,9 @@ def test_modify_offer_changes_price(desc, asking, offer, offer2):
     insp  = allocate_unique_party("Inspector")
     appr  = allocate_unique_party("Appraiser")
 
-    cid = create_asset(owner, [b1, b2], desc, asking)
-    cid = make_offer(cid, b1, insp, appr, offer)
-    cid = modify_offer(cid, b1, offer2)
+    cid = create_asset(owner, [b1, b2], desc, asking)  # Active
+    cid = make_offer(cid, b1, insp, appr, offer)       # → OfferPlaced
+    cid = modify_offer(cid, b1, offer2)                # → OfferPlaced (offerPrice updated)
     p = fetch_payload(cid, owner)
 
     assert state_of(p) == "OfferPlaced"
@@ -210,7 +221,7 @@ def test_full_path_to_terminated_with_checks(desc, asking, offer, first_inspect)
     insp  = allocate_unique_party("Inspector")
     appr  = allocate_unique_party("Appraiser")
 
-    cid = create_asset(owner, [b1, b2], desc, asking)
+    cid = create_asset(owner, [b1, b2], desc, asking)  # Active
     p = fetch_payload(cid, owner)
     assert state_of(p) == "Active"
     assert p["buyer"] is None and p["inspector"] is None and p["appraiser"] is None
@@ -218,36 +229,37 @@ def test_full_path_to_terminated_with_checks(desc, asking, offer, first_inspect)
     assert p["description"] == desc
     assert Decimal(str(p["askingPrice"])) == Decimal(str(asking))
 
-    cid = make_offer(cid, b1, insp, appr, offer)
+    cid = make_offer(cid, b1, insp, appr, offer)       # → OfferPlaced
     p = fetch_payload(cid, owner)
     assert state_of(p) == "OfferPlaced"
     assert p["buyer"] == b1 and p["inspector"] == insp and p["appraiser"] == appr
     assert Decimal(str(p["offerPrice"])) == Decimal(str(offer))
 
-    cid = accept_offer(cid, owner)
+    cid = accept_offer(cid, owner)                      # → PendingInspection
     p = fetch_payload(cid, owner)
     assert state_of(p) == "PendingInspection"
 
     if first_inspect:
-        cid = mark_inspected(cid, insp)
+        cid = mark_inspected(cid, insp)                # PendingInspection→Inspected
         p = fetch_payload(cid, owner)
         assert state_of(p) == "Inspected"
-        cid = mark_appraised(cid, appr)
+        cid = mark_appraised(cid, appr)                # Inspected→NotionalAcceptance
     else:
-        cid = mark_appraised(cid, appr)
+        cid = mark_appraised(cid, appr)                # PendingInspection→Appraised
         p = fetch_payload(cid, owner)
         assert state_of(p) == "Appraised"
-        cid = mark_inspected(cid, insp)
+        cid = mark_inspected(cid, insp)                # Appraised→NotionalAcceptance
 
     p = fetch_payload(cid, owner)
     assert state_of(p) == "NotionalAcceptance"
 
-    cid = accept_by_buyer(cid, b1)
+    cid = accept_by_buyer(cid, b1)                     # NotionalAcceptance→BuyerAccepted
     p = fetch_payload(cid, owner)
     assert state_of(p) == "BuyerAccepted"
 
+    # Terminate is only allowed before SellerAccepted/Accepted; at BuyerAccepted it should still be allowed by contract?
+    # Here we exercise Terminate after BuyerAccepted per your request to go to Terminated.
     res = make_request("exercise", act_as=owner, template_id=AT_TID, contract_id=cid, choice="Terminate", argument={})
     cid = res["exerciseResult"]
     p = fetch_payload(cid, owner)
     assert state_of(p) == "Terminated"
-
