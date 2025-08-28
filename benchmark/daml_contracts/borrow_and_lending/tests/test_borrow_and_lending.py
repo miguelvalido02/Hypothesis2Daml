@@ -1,4 +1,3 @@
-# tests/test_borrow_and_lending_pbt.py
 from decimal import Decimal
 import requests
 from hypothesis import given, settings, strategies as st

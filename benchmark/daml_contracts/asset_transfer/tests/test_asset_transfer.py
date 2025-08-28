@@ -1,4 +1,3 @@
-# tests/test_asset_transfer_pbt.py
 from decimal import Decimal
 import requests
 from hypothesis import given, settings, strategies as st
