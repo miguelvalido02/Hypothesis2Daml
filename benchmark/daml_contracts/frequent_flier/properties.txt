@@ -1,2 +1,0 @@
-Só o manufacturer pode chamar a choice ComputeTotal
-Se o estado for diferente de "Create", não se pode chamar a choice ComputeTotal
