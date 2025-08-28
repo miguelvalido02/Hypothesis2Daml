@@ -1,0 +1,206 @@
+module TestBorrowAndLending where
+
+import Daml.Script
+import BorrowAndLending
+import Prelude ((<>), ($), debug, show)
+
+setup : Script ()
+setup = script do
+    currentTime <- getTime -- Fetch the current time
+    debug $ (show currentTime) -- Print the current time
+  -- Define the parties
+    owner <- allocateParty "Owner"
+    lender1 <- allocateParty "Lender1"
+    lender2 <- allocateParty "Lender2"
+    -- Define initial balances (token name and amount)
+    let initialBalances = [("USD", 0.0), ("BTC", 0.0)]
+
+    -- Create an empty list of lenders and borrowers
+    let initialLenders = []
+    let initialBorrowers = []
+
+    -- Create an instance of the BorrowAndLending template
+
+    debug "Creating the contract" 
+    cid <- submit owner do
+        createCmd BorrowAndLending with
+            owner = owner,
+                users = [],
+                lenders = initialLenders,
+                borrowers = initialBorrowers,
+                balances = initialBalances
+    --Cannot lend before adding observer
+    submitMustFail lender1 do
+        exerciseCmd cid (Lend lender1 "USD" 100.0)
+    -- Add the lenders as observers
+    debug "Adding the lenders as observers"
+    cid1 <- submit owner do
+        exerciseCmd cid (AddObserver lender1)
+    cid2 <- submit owner do
+        exerciseCmd cid1 (AddObserver lender2)
+    -- Cannot withdraw before lending
+    submitMustFail lender1 do
+        exerciseCmd cid2 (Withdraw lender1 "USD" 100.0)
+    -- Lend some money
+    debug "Lender1 will lend 100.0 USD"
+    cid3 <- submit lender1 do
+        exerciseCmd cid2 (Lend lender1 "USD" 100.0)
+    -- Check the balance of the lender
+    balances <- submit lender1 do
+        exerciseCmd cid3 (GetCollaterals lender1)
+    debug ("Balances lender1" <> show balances)
+
+    -- Lend some more money
+    debug "Lender2 will lend 100.0 BTC"
+    cid4 <- submit lender2 do
+        exerciseCmd cid3 (Lend lender2 "BTC" 100.0)
+
+    ----------------------Lender1 100 usd; Lender2 100 btc---------------------------
+
+    -- Check the balance of the lender
+    balances2 <- submit lender2 do
+        exerciseCmd cid4 (GetCollaterals lender2)
+    debug ("Balances lender2" <> show balances2)
+
+    -- Make sure they cannot withdraw the wrong token
+    submitMustFail lender1 do
+        exerciseCmd cid4 (Withdraw lender1 "BTC" 100.0)
+    
+    submitMustFail lender2 do
+        exerciseCmd cid4 (Withdraw lender2 "USD" 100.0)
+    
+    -- Make sure they cannot withdraw more than they have
+
+    submitMustFail lender1 do
+        exerciseCmd cid4 (Withdraw lender1 "USD" 200.0)
+
+    submitMustFail lender2 do
+        exerciseCmd cid4 (Withdraw lender2 "BTC" 200.0)
+
+    -- Withdraw some money
+    debug "Lender1 will withdraw 50.0 USD"
+    cid5 <- submit lender1 do
+        exerciseCmd cid4 (Withdraw lender1 "USD" 50.0)
+
+    ----------------------Lender1 50 usd; Lender2 100 btc---------------------------
+
+    -- Check the balance of the lender
+    balances3 <- submit lender1 do
+        exerciseCmd cid5 (GetCollaterals lender1)
+    debug ("Balances lender1" <> show balances3)
+    balances4 <- submit lender2 do
+        exerciseCmd cid5 (GetCollaterals lender2)
+    debug ("Balances lender2" <> show balances4)
+    
+    -- Borrow some money
+    debug "Lender1 will borrow 10.0 BTC using 50 USD as collateral"
+    cid6 <- submit lender1 do
+        exerciseCmd cid5 (Borrow lender1 "USD" 50.0 "BTC" 10.0)
+    
+    ----------------------Lender1 50 usd; Lender2 100 btc; Borrower1 10 btc---------------------------
+
+    -- Check the balance of the borrower
+    balances5 <- submit lender1 do
+        exerciseCmd cid6 (GetCollaterals lender1)
+    debug ("Balances lender1" <> show balances5)
+    -- Check the balance of the lender
+    balances6 <- submit lender1 do
+        exerciseCmd cid6 (GetBorrowers lender1)
+    debug ("Balances borrower1" <> show balances6)
+    -- Check the contract balances
+    balances7 <- submit lender1 do
+        exerciseCmd cid6 (GetBalances lender1) 
+    debug ("Balances contract" <> show balances7)
+
+    -- Make sure they cannot withdraw more than what the contract has
+    submitMustFail lender2 do
+        exerciseCmd cid6 (Withdraw lender2 "BTC" 100.0)
+    --Make sure lender1 cannot withdraw his collateral while he has a loan
+    submitMustFail lender1 do
+        exerciseCmd cid6 (Withdraw lender1 "USD" 50.0)
+    -- Withdraw some money
+    debug "Lender2 will withdraw 90.0 BTC"
+    cid7 <- submit lender2 do
+        exerciseCmd cid6 (Withdraw lender2 "BTC" 90.0)
+    
+    ----------------------Lender1 50 usd; Lender2 10 btc; Borrower1 10 btc---------------------------
+
+    -- Check the balance of the lender
+    balances8 <- submit lender1 do
+        exerciseCmd cid7 (GetCollaterals lender1)
+    debug ("Balances lender1" <> show balances8)
+    -- Check the balance of the borrower
+    balances9 <- submit lender1 do
+        exerciseCmd cid7 (GetBorrowers lender1)
+    debug ("Balances borrower1" <> show balances9)
+    --Check the balance of lender2
+    balances10 <- submit lender2 do
+        exerciseCmd cid7 (GetCollaterals lender2)
+    debug ("Balances lender2" <> show balances10)
+
+    -- Make sure user cannot repay the wrong loan
+    submitMustFail lender1 do
+        exerciseCmd cid6 (Repay lender1 "BTC" "USD")
+    
+    -- Repay
+    debug "Lender1 will repay the loan"
+    cid8 <- submit lender1 do
+        exerciseCmd cid7 (Repay lender1 "USD" "BTC")
+    
+    ----------------------Lender1 50 usd; Lender2 10 btc; Borrower1 0 btc---------------------------
+
+    -- Check the balance of the lender
+    balances11 <- submit lender1 do
+        exerciseCmd cid8 (GetCollaterals lender1)
+    debug ("Balances lender1" <> show balances11)
+    -- Check the balance of the borrower
+    balances12 <- submit lender1 do
+        exerciseCmd cid8 (GetBorrowers lender1)
+    debug ("Balances borrower1" <> show balances12)
+    --Check the balance of lender2
+    balances13 <- submit lender2 do
+        exerciseCmd cid8 (GetCollaterals lender2)
+    debug ("Balances lender2" <> show balances13)
+
+    -- Make sure user cannot repay the same loan twice
+    submitMustFail lender1 do
+        exerciseCmd cid8 (Repay lender1 "USD" "BTC")
+    
+    -- User1 now can withdraw his collateral
+    debug "Lender1 will withdraw his collateral (50.0 USD)"
+    cid9 <- submit lender1 do
+        exerciseCmd cid8 (Withdraw lender1 "USD" 50.0)
+    
+    ----------------------Lender1 0 usd; Lender2 10 btc; Borrower1 0 btc---------------------------
+    --Make sure lender1 cannot withdraw lender2's collateral
+    submitMustFail lender1 do
+        exerciseCmd cid9 (Withdraw lender2 "BTC" 10.0)
+    -- Lender2 withdraws his collateral
+    debug "Lender2 will withdraw his collateral (10.0 BTC)"
+    cid10 <- submit lender2 do
+        exerciseCmd cid9 (Withdraw lender2 "BTC" 10.0)
+
+    --Make sure noone can withdraw anything more
+    submitMustFail lender1 do
+        exerciseCmd cid10 (Withdraw lender1 "USD" 50.0)
+    submitMustFail lender2 do
+        exerciseCmd cid10 (Withdraw lender2 "BTC" 10.0)
+    
+    -- Check the balance of the lender
+    balances14 <- submit lender1 do
+        exerciseCmd cid10 (GetCollaterals lender1)
+    debug ("Balances lender1" <> show balances14)
+    -- Check the balance of the borrower
+    balances15 <- submit lender1 do
+        exerciseCmd cid10 (GetBorrowers lender1)
+    debug ("Balances borrower1" <> show balances15)
+    --Check the balance of lender2
+    balances16 <- submit lender2 do
+        exerciseCmd cid10 (GetCollaterals lender2)
+    debug ("Balances lender2" <> show balances16)
+    balances17 <- submit lender2 do
+        exerciseCmd cid10 (GetBalances lender2)
+    debug ("Balances contract" <> show balances17)
+
+    currentTime <- getTime -- Fetch the current time
+    debug $ (show currentTime) -- Print the current time
