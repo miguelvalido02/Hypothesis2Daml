@@ -5,16 +5,35 @@ PKG = "b46b4ba42416f39c25b6fe0f41c14f0110d33505d925136bbbb8e9a15b860d59"
 TID = f"{PKG}:DefectiveComponentCounter:DefectiveCounter"
 
 def create_counter(manufacturer: str, defective: int, state: str = "Create") -> str:
-    res = make_request("create", act_as=manufacturer, template_id=TID,
-                       payload={"manufacturer": manufacturer, "defectiveComponents": defective, "state": state})
+    # After create:
+    # - state = "Create"
+    # - defectiveComponents = defective (int preserved)
+    # - signatory/actor = manufacturer
+    res = make_request(
+        "create",
+        act_as=manufacturer,
+        template_id=TID,
+        payload={"manufacturer": manufacturer, "defectiveComponents": defective, "state": state},
+    )
     return res["contractId"]
 
 def compute_total(cid: str, manufacturer: str) -> str:
-    res = make_request("exercise", act_as=manufacturer, template_id=TID,
-                       contract_id=cid, choice="ComputeTotal", argument={})
+    # Choice ComputeTotal:
+    # - expected transition: "Create" → "ComputeTotal"
+    # - defectiveComponents is preserved
+    # - returns new contractId (archiving old, creating new)
+    res = make_request(
+        "exercise",
+        act_as=manufacturer,
+        template_id=TID,
+        contract_id=cid,
+        choice="ComputeTotal",
+        argument={},
+    )
     return res["exerciseResult"]
 
 def get_payload(cid: str, reader: str) -> dict:
+    # Read helper via /query (using readAs=reader) to retrieve payload for cid
     res = make_request("query", read_as=[reader], template_ids=[TID], query={})
     for c in res:
         if c["contractId"] == cid:
@@ -25,9 +44,14 @@ def get_payload(cid: str, reader: str) -> dict:
 @settings(max_examples=10, deadline=None)
 def test_compute_total_sets_state_and_preserves_count(n):
     m = allocate_unique_party("M")
+
+    # Create → state should be "Create" and count preserved
     cid = create_counter(m, n, "Create")
     p0 = get_payload(cid, m)
     assert p0["state"] == "Create"
+    assert int(p0["defectiveComponents"]) == n
+
+    # ComputeTotal → state should move to "ComputeTotal" and count still preserved
     cid2 = compute_total(cid, m)
     p1 = get_payload(cid2, m)
     assert p1["state"] == "ComputeTotal"
@@ -38,10 +62,21 @@ def test_compute_total_sets_state_and_preserves_count(n):
 def test_only_manufacturer_can_compute(n):
     m = allocate_unique_party("M")
     attacker = allocate_unique_party("X")
+
+    # Counter belongs to m in "Create"
     cid = create_counter(m, n, "Create")
+
+    # Security property: non-manufacturer cannot exercise ComputeTotal
     try:
-        make_request("exercise", act_as=attacker, template_id=TID,
-                     contract_id=cid, choice="ComputeTotal", argument={})
-        assert False
+        make_request(
+            "exercise",
+            act_as=attacker,
+            template_id=TID,
+            contract_id=cid,
+            choice="ComputeTotal",
+            argument={},
+        )
+        assert False, "Only the manufacturer should be able to ComputeTotal"
     except AssertionError:
+        # Expected: JSON API returns 400 and ensure_ok raises AssertionError
         pass
