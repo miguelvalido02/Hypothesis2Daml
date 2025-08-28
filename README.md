@@ -25,14 +25,13 @@ Depois de garantir que há venv
 ---------------------------------------------------------------------------------------------------------
 # Ficheiro de teste
 Importar a lib:
-```from daml_pbt import make_request, make_auth, make_admin_auth, ensure_ok, allocate_party, allocate_unique_party
-```
-É necessário ir buscar o package_id. Para tal, correr  ```daml damlc inspect-dar .daml/dist/ZeroTokenBank-1.0.0.dar```
+```from daml_pbt import make_request, make_auth, make_admin_auth, ensure_ok, allocate_party, allocate_unique_party```
+
+É necessário ir buscar o package_id. Para tal, correr 
+ ```daml damlc inspect-dar .daml/dist/ZeroTokenBank-1.0.0.dar```
 e vai aparecer algures dentro do output:
 
-```DAR archive contains the following packages:
-
-ZeroTokenBank-1.0.0-c6f004b1cd672ae532964d33767186c66d1b0673ce87a0e05b35e7b78c2fc514 "c6f004b1cd672ae532964d33767186c66d1b0673ce87a0e05b35e7b78c2fc514"```
+```DAR archive contains the following packages: ZeroTokenBank-1.0.0-c6f004b1cd672ae532964d33767186c66d1b0673ce87a0e05b35e7b78c2fc514 "c6f004b1cd672ae532964d33767186c66d1b0673ce87a0e05b35e7b78c2fc514"```
 
 A constante "PKG" é o que está dentro das aspas.
 ```PKG = "c6f004b1cd672ae532964d33767186c66d1b0673ce87a0e05b35e7b78c2fc514"```
