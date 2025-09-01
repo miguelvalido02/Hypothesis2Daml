@@ -18,7 +18,7 @@ def create_bank(operator: str) -> str:
         "create",
         act_as=operator,
         template_id=BANK_TID,
-        payload={"operator": operator},
+        payload={"operator": operator}, # Add or remove fields as per your contract
     )
     return res["contractId"]
 
@@ -33,7 +33,7 @@ def open_account(bank_cid: str, operator: str, user: str) -> str:
         template_id=BANK_TID,
         contract_id=bank_cid,
         choice="OpenAccount",
-        argument={"user": user},
+        argument={"user": user}, # Add or remove fields as per your contract
     )
     return res["exerciseResult"]
 
@@ -48,7 +48,7 @@ def deposit(ub_cid: str, user: str, amount: Decimal) -> str:
         template_id=UB_TID,
         contract_id=ub_cid,
         choice="Deposit",
-        argument={"amount": str(amount)},
+        argument={"amount": str(amount)}, # Add or remove fields as per your contract (ex. token name)
     )
     return res["exerciseResult"]
 
@@ -61,12 +61,13 @@ def get_balance(ub_cid: str, user: str) -> Decimal:
         template_id=UB_TID,
         contract_id=ub_cid,
         choice="GetBalance",
-        argument={},
+        argument={}, # Add or remove fields as per your contract (ex. token name)
     )
     return Decimal(str(res["exerciseResult"]))
 
 # ---------- Property tests ----------
 
+# Test if deposit increases balance correctly
 @given(d=st.decimals(min_value="0.01", max_value="199.99", places=2))
 @settings(max_examples=5, deadline=None)
 def test_deposit_increases_balance(d):
@@ -85,6 +86,7 @@ def test_deposit_increases_balance(d):
     b1   = get_balance(ub, operator)
     assert b1 == b0 + Decimal(d)
 
+# Test that no withdrawal is possible with zero balance
 @given(amount=st.decimals(min_value="0.00", max_value="250.00", places=2))
 @settings(max_examples=25, deadline=None)
 def test_cannot_withdraw_any_amount_without_deposit(amount):
@@ -107,7 +109,7 @@ def test_cannot_withdraw_any_amount_without_deposit(amount):
             template_id=UB_TID,
             contract_id=ub,
             choice="Withdraw",
-            argument={"amount": str(Decimal(amount))},
+            argument={"amount": str(Decimal(amount))}, # Add or remove fields as per your contract
         )
     except AssertionError:
         return  # expected failure surfaced by ensure_ok
