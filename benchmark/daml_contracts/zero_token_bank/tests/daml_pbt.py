@@ -1,4 +1,3 @@
-# daml_pbt.py
 import base64, json, requests, uuid
 
 BASE = "http://localhost:7575/v1"
