@@ -1,3 +1,0 @@
-type T =
-  (->) @{'GHC.Types.LiftedRep} @{'GHC.Types.LiftedRep} :: * -> * -> *
-  	-- Defined at <interactive>:2:1

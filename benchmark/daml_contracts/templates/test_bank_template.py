@@ -1,7 +1,7 @@
 import base64, json, requests, uuid
 from decimal import Decimal
 from hypothesis import given, settings, strategies as st
-from daml_pbt import make_request, make_auth, make_admin_auth, ensure_ok, allocate_party, allocate_unique_party
+from daml_pbt import make_request, make_auth, make_admin_auth ensure_ok, allocate_party, allocate_unique_party
 
 # Package ID from the DAR
 PKG = "PASTE_YOUR_PKG_HERE"

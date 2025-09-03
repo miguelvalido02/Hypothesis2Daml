@@ -1,4 +1,0 @@
-
-InfixAppPatErr.hs:2:3: error:
-    Parse error in pattern: f $ do a <- return 3 c
-    Possibly caused by a missing 'do'?
