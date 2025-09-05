@@ -1,4 +1,4 @@
-#!/home/m/miguel-valido-repo/benchmark/daml_translations/zero_token_bank/.venv/bin/python3
+#!/home/m/miguel-valido-repo/benchmark/daml_contracts/zero_token_bank/.venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

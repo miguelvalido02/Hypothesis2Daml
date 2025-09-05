@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV /home/m/miguel-valido-repo/benchmark/daml_translations/zero_token_bank/.venv
+set -gx VIRTUAL_ENV /home/m/miguel-valido-repo/benchmark/daml_contracts/zero_token_bank/.venv
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH

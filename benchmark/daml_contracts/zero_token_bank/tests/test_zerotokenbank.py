@@ -69,7 +69,7 @@ def get_balance(ub_cid: str, user: str) -> Decimal:
 
 @given(d=st.decimals(min_value="0.01", max_value="199.99", places=2))
 @settings(max_examples=5, deadline=None)
-def test_deposit_increases_balance(d):
+def test_deposit_increases_balance(d:Decimal):
     # Setup: operator opens an account for herself
     operator = allocate_unique_party("Operator")      # unique party per example
     bank = create_bank(operator)                      # create Bank
@@ -79,11 +79,11 @@ def test_deposit_increases_balance(d):
     b0   = get_balance(ub, operator)
 
     # Action: Deposit 'd' (valid range per template)
-    ub   = deposit(ub, operator, Decimal(d))
+    ub   = deposit(ub, operator, d)
 
     # After deposit: balance must increase by exactly 'd'
     b1   = get_balance(ub, operator)
-    assert b1 == b0 + Decimal(d)
+    assert b1 == b0 + d
 
 @given(amount=st.decimals(min_value="0.00", max_value="250.00", places=2))
 @settings(max_examples=25, deadline=None)

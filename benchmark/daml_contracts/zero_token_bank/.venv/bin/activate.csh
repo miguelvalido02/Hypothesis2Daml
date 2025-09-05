@@ -9,7 +9,7 @@ alias deactivate 'test $?_OLD_VIRTUAL_PATH != 0 && setenv PATH "$_OLD_VIRTUAL_PA
 # Unset irrelevant variables.
 deactivate nondestructive
 
-setenv VIRTUAL_ENV /home/m/miguel-valido-repo/benchmark/daml_translations/zero_token_bank/.venv
+setenv VIRTUAL_ENV /home/m/miguel-valido-repo/benchmark/daml_contracts/zero_token_bank/.venv
 
 set _OLD_VIRTUAL_PATH="$PATH"
 setenv PATH "$VIRTUAL_ENV/"bin":$PATH"
