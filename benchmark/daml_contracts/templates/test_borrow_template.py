@@ -82,6 +82,9 @@ def get_balances(cid: str, user: str) -> dict[str, Decimal]:
         out[item["_1"]] = Decimal(str(item["_2"]))
     return out
 
+#------------------------------------------------Property tests------------------------------------------------#
+# You may find below some essential tests naturally you should add your own to make sure your aplication is correct
+
 
 #Check if deposit/lend updates correctly
 @given(tok=alpha, a1=money, a2=money)

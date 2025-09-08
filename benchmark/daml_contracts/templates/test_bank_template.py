@@ -66,6 +66,8 @@ def get_balance(ub_cid: str, user: str) -> Decimal:
     return Decimal(str(res["exerciseResult"]))
 
 # ---------- Property tests ----------
+# You may find below some essential tests naturally you should add your own to make sure your aplication is correct
+
 
 # Test if deposit increases balance correctly
 @given(d=st.decimals(min_value="0.01", max_value="199.99", places=2))
