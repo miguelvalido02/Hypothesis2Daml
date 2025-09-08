@@ -1,6 +1,7 @@
 # Tipos de ficheiros
 A ferramenta usa o seguinte tipo de ficheiros:
-DAR,VENV
+- **DAR** (Daml Archive): pacote compilado contendo os módulos e templates DAML do projeto.
+- **VENV** (Virtual Environment): ambiente virtual de Python que isola dependências e executáveis do projeto.
 
 # Como correr a tool
 Em todos os comandos é necessário estar na pasta do projeto daml (onde está o ficheiro daml.yaml)
@@ -46,3 +47,10 @@ e vai aparecer algures dentro do output:
 
 A constante "PKG" é o que está dentro das aspas.
 ```PKG = "c6f004b1cd672ae532964d33767186c66d1b0673ce87a0e05b35e7b78c2fc514"```
+
+---------------------------------------------------------------------------------------------------------
+# Exemplos
+
+## Exemplos concretos
+
+## Templates
