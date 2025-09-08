@@ -49,8 +49,12 @@ A constante "PKG" é o que está dentro das aspas.
 ```PKG = "c6f004b1cd672ae532964d33767186c66d1b0673ce87a0e05b35e7b78c2fc514"```
 
 ---------------------------------------------------------------------------------------------------------
-# Exemplos
+# Exemplos e templates
 
 ## Exemplos concretos
+Há **8** exemplos concretos neste repositório, localizados em:  
+`miguel-valido-repo/benchmark/daml_contracts/`
 
 ## Templates
+Existem **3** templates, disponíveis em:  
+`miguel-valido-repo/benchmark/daml_contracts/templates`
