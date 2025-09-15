@@ -51,51 +51,49 @@ A constante "PKG" é o que está dentro das aspas.
 ---------------------------------------------------------------------------------------------------------
 # Exemplos e templates
 
-## Exemplos e templates
-
-### Exemplos concretos
+## Exemplos concretos
 Há **8** exemplos concretos neste repositório, localizados em:  
 `miguel-valido-repo/benchmark/daml_contracts/`
 
-- **AssetTransfer** (`AssetTransfer/`)  
+- **AssetTransfer**
   Workflow de compra/venda com estados (p.ex., `ItemAvailable`, `OfferPlaced`,
   inspeção/avaliação, `Accepted`/`Rejected`) e papéis (owner, buyer, inspector,
   appraiser).  
   *Propriedades*: transições válidas, guards de aceitação/rejeição, permissões
   por papel.
 
-- **BorrowAndLending** (`BorrowAndLending/`)  
+- **BorrowAndLending**
   *Pool* de empréstimos: depositar (lend), levantar (withdraw), pedir (borrow) e
   reembolsar (repay).  
   *Propriedades*: `Lend` acumula saldos; `Withdraw` respeita saldo disponível;
   ciclo `Borrow/Repay` restaura o estado.
 
-- **DefectiveComponentCounter** (`DefectiveComponentCounter/`)  
+- **DefectiveComponentCounter** 
   Contagem de componentes defeituosos com permissões por fabricante.  
   *Propriedades*: `ComputeTotal` preserva a soma; apenas o fabricante está
   autorizado.
 
-- **DigitalLocker** (`DigitalLocker/`)  
+- **DigitalLocker** 
   Cofre digital para partilha de documentos com pedidos e revogações.  
   *Propriedades*: `UploadDocuments` define campos; ciclo
   `Request→Accept→Release`; ida e volta `Share→Revoke`.
 
-- **FrequentFlier** (`FrequentFlier/`)  
+- **FrequentFlier**
   Programa de milhas com acumulação e regras de recompensa.  
   *Propriedades*: `AddMiles` atualiza milhas/recompensas; apenas o viajante
   autorizado.
 
-- **SimpleMarket** (`SimpleMarket/`)  
+- **SimpleMarket**
   Marketplace simples com oferta/aceitação/rejeição e mudanças de estado.  
   *Propriedades*: `MakeOffer` apenas a partir de `ItemAvailable`; muda para
   `OfferPlaced`; só o *owner* aceita/rejeita; guards respeitados.
 
-- **WhitelistedRegistry** (`WhitelistedRegistry/`)  
+- **WhitelistedRegistry**
   Registo com *owner* e lista branca de partes autorizadas.  
   *Propriedades*: só o *owner* pode alterar owner/whitelist; `SetWhitelisted`
   alterna a filiação; `IsWhitelisted` reflete o estado real.
 
-- **ZeroTokenBank** (`ZeroTokenBank/`)  
+- **ZeroTokenBank** 
   “Banco” mínimo sem token nativo: abrir conta, depositar, levantar e consultar
   saldo.  
   *Propriedades*: depósito aumenta saldo; levantamento é proibido com saldo zero.
