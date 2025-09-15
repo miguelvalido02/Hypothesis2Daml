@@ -56,47 +56,39 @@ Há **8** exemplos concretos neste repositório, localizados em:
 `miguel-valido-repo/benchmark/daml_contracts/`
 
 - **AssetTransfer**
-  Workflow de compra/venda com estados (p.ex., `ItemAvailable`, `OfferPlaced`,
-  inspeção/avaliação, `Accepted`/`Rejected`) e papéis (owner, buyer, inspector,
-  appraiser).  
+  Workflow de compra/venda com estados (p.ex., `Active`, `OfferPlaced`,`PendingInspection`,`Inspected`, `Accepted`/`Rejected`) e papéis/roles (owner, buyer, inspector e appraiser).  
   *Propriedades*: transições válidas, guards de aceitação/rejeição, permissões
-  por papel.
+  por papel/role.
 
 - **BorrowAndLending**
   *Pool* de empréstimos: depositar (lend), levantar (withdraw), pedir (borrow) e
   reembolsar (repay).  
   *Propriedades*: `Lend` acumula saldos; `Withdraw` respeita saldo disponível;
-  ciclo `Borrow/Repay` restaura o estado.
+  ciclo `Borrow/Repay` restaura o estado corretamente.
 
 - **DefectiveComponentCounter** 
   Contagem de componentes defeituosos com permissões por fabricante.  
-  *Propriedades*: `ComputeTotal` preserva a soma; apenas o fabricante está
-  autorizado.
+  *Propriedades*: `ComputeTotal` preserva a soma; apenas o fabricante está autorizado.
 
 - **DigitalLocker** 
   Cofre digital para partilha de documentos com pedidos e revogações.  
-  *Propriedades*: `UploadDocuments` define campos; ciclo
-  `Request→Accept→Release`; ida e volta `Share→Revoke`.
+  *Propriedades*: `UploadDocuments` define campos; ciclo `Request→Accept→Release`; ida e volta `Share→Revoke` restaura estado corretamente.
 
 - **FrequentFlier**
   Programa de milhas com acumulação e regras de recompensa.  
-  *Propriedades*: `AddMiles` atualiza milhas/recompensas; apenas o viajante
-  autorizado.
+  *Propriedades*: `AddMiles` atualiza milhas/recompensas; apenas o viajante autorizado.
 
 - **SimpleMarket**
   Marketplace simples com oferta/aceitação/rejeição e mudanças de estado.  
-  *Propriedades*: `MakeOffer` apenas a partir de `ItemAvailable`; muda para
-  `OfferPlaced`; só o *owner* aceita/rejeita; guards respeitados.
+  *Propriedades*: `MakeOffer` apenas a partir de `ItemAvailable`; `MakeOffer` muda para `OfferPlaced`; só o *owner* aceita/rejeita ofertas; guards respeitados.
 
 - **WhitelistedRegistry**
   Registo com *owner* e lista branca de partes autorizadas.  
-  *Propriedades*: só o *owner* pode alterar owner/whitelist; `SetWhitelisted`
-  alterna a filiação; `IsWhitelisted` reflete o estado real.
+  *Propriedades*: só o *owner* pode alterar owner/whitelist; `SetWhitelisted` alterna a filiação; `IsWhitelisted` reflete o estado real.
 
 - **ZeroTokenBank** 
-  “Banco” mínimo sem token nativo: abrir conta, depositar, levantar e consultar
-  saldo.  
-  *Propriedades*: depósito aumenta saldo; levantamento é proibido com saldo zero.
+  “Banco” mínimo sem token nativo: abrir conta, depositar, levantar e consultar saldo.  
+  *Propriedades*: depósito aumenta saldo corretamente; levantamento é proibido com saldo zero.
 
 ---
 
@@ -105,20 +97,14 @@ Existem **3** templates, disponíveis em:
 `miguel-valido-repo/benchmark/daml_contracts/templates`
 
 - **BorrowLendingTemplate**  
-  Base para *pools* de empréstimo: `Lend`, `Withdraw`, `Borrow`, `Repay`,
-  saldos por parte e validações de limites. Útil para testar invariantes de
-  contabilização, regras de *collateral* e rondas de *borrow/repay*.
+  Base para *pools* de empréstimo: `Lend`, `Withdraw`, `Borrow`, `Repay`, saldos por parte e validações de limites. Útil para testar invariantes de contabilização, regras de colateral e *round-trips* de *borrow/repay*.
 
 - **WhitelistedRegistryTemplate**  
-  Padrão de controlo de acesso com *owner* e *whitelist*: `SetWhitelisted`
-  (liga/desliga), `IsWhitelisted` (consulta) e troca de *owner*. Serve de base
-  para cenários onde autorizações e papéis variam ao longo do tempo.
+  Padrão de controlo de acesso com *owner* e *whitelist*: `SetWhitelisted` (liga/desliga), `IsWhitelisted` (consulta) e troca de *owner*. Serve de base para cenários onde autorizações e papéis variam ao longo do tempo.
 
 - **ZeroTokenBankTemplate**  
-  “Banco” custodial minimalista: abrir conta, depositar, levantar, consultar.
-  Ideal para invariantes simples (saldo nunca negativo, soma de saldos
-  consistente) e testes de permissões básicos.
+  “Banco” custodial minimalista: abrir conta, depositar, levantar, consultar. Ideal para invariantes simples (saldo nunca negativo, soma de saldos consistente) e testes de permissões básicos.
 
-> Dica: cada template inclui um conjunto pequeno de propriedades de arranque
-> no diretório `tests/` correspondente, que podes usar como padrão e expandir.
+> Dica: cada template e exemplo concreto inclui um conjunto pequeno de propriedades de arranque
+> no diretório `tests/` correspondente, que pode ser usado como padrão.
 
