@@ -26,7 +26,7 @@ A ferramenta usa o seguinte tipo de ficheiros:
 - **VENV** (Virtual Environment): ambiente virtual de Python que isola dependências e executáveis do projeto.
 
 # Como correr a tool
-Em todos os comandos é necessário estar na pasta do projeto daml (onde está o ficheiro daml.yaml)
+Em todos os comandos é necessário estar na pasta do projeto daml (onde está o ficheiro daml.yaml).
 Se ainda não tiver venv criado é preciso correr
 ```python3 -m venv .venv```
 ```source .venv/bin/activate```
