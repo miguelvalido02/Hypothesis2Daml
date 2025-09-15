@@ -51,6 +51,8 @@ A constante "PKG" é o que está dentro das aspas.
 ---------------------------------------------------------------------------------------------------------
 # Exemplos e templates
 
+## Exemplos e templates
+
 ### Exemplos concretos
 Há **8** exemplos concretos neste repositório, localizados em:  
 `miguel-valido-repo/benchmark/daml_contracts/`
