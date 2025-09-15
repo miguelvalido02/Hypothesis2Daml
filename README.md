@@ -33,7 +33,7 @@ Se ainda não tiver venv criado é preciso correr
 ```pip install -U pip pytest hypothesis requests```
 
 Se ainda não tiver ficheiro DAR, é preciso correr
-```daml build```
+```daml build```.
 São precisos 3 terminais para os testes.
 
 ### Terminal A
