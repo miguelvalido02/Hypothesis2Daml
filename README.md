@@ -106,5 +106,5 @@ Existem **3** templates, disponíveis em:
   “Banco” custodial minimalista: abrir conta, depositar, levantar, consultar. Ideal para invariantes simples (saldo nunca negativo, soma de saldos consistente) e testes de permissões básicos.
 
 > Dica: cada template e exemplo concreto inclui um conjunto pequeno de propriedades de arranque
-> no diretório `tests/` correspondente, que pode ser usado como padrão.
+> no diretório `tests/` correspondente, que podem ser usados como padrão.
 
