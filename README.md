@@ -1,3 +1,25 @@
+# Introdução
+
+Esta ferramenta fornece uma biblioteca Python para **testes baseados em propriedades (property-based testing)** de contratos **Daml**, executando-os via **Daml JSON API**. 
+O módulo `daml_pbt` integra-se com **Hypothesis** (geração e *shrinking* de dados) e **pytest** (execução e relatórios), 
+permitindo validar **invariantes**, **pré/pós-condições** e **workflows stateful** com exemplos gerados automaticamente e **contra-exemplos reprodutíveis**.
+
+**Principais funcionalidades**
+- *Helpers* para criar contratos, exercer *choices* e fazer *queries*.
+- Geração automática de inputs com Hypothesis e *shrinking* de contraexemplos.
+- Isolamento de partes por teste (evita interferências entre casos).
+- Integração com pytest para correr localmente e em CI.
+
+**O que encontrarás neste repositório**
+- O módulo `daml_pbt` com os *helpers*.
+- **Exemplos concretos** de contratos Daml com propriedades de referência.
+- **Templates reutilizáveis** para arrancar rapidamente novos testes.
+
+**Pré-requisitos**
+- **Daml SDK** a correr localmente (**Sandbox** e **JSON API**).
+- **Python 3.x** com `pytest`, `hypothesis` e `requests`.
+- Um **DAR** do teu projeto Daml (ver secção abaixo).
+
 # Tipos de ficheiros
 A ferramenta usa o seguinte tipo de ficheiros:
 - **DAR** (Daml Archive): pacote compilado contendo os módulos e templates DAML do projeto.
