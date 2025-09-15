@@ -20,7 +20,7 @@ permitindo validar **invariantes**, **pré/pós-condições** e **workflows stat
 - **Python 3.x** com `pytest`, `hypothesis` e `requests`.
 - Um **DAR** do teu projeto Daml (ver secção abaixo).
 
-# Tipos de ficheiros
+## Tipos de ficheiros
 A ferramenta usa o seguinte tipo de ficheiros:
 - **DAR** (Daml Archive): pacote compilado contendo os módulos e templates DAML do projeto.
 - **VENV** (Virtual Environment): ambiente virtual de Python que isola dependências e executáveis do projeto.
