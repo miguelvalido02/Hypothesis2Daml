@@ -1,17 +1,39 @@
-# Tipos de ficheiros
+# Introdução
+
+Esta ferramenta fornece uma biblioteca Python para **testes baseados em propriedades (property-based testing)** de contratos **Daml**, executando-os via **Daml JSON API**. 
+O módulo `daml_pbt` integra-se com **Hypothesis** (geração e *shrinking* de dados) e **pytest** (execução e relatórios), 
+permitindo validar **invariantes**, **pré/pós-condições** e **workflows stateful** com exemplos gerados automaticamente e **contra-exemplos reprodutíveis**.
+
+**Principais funcionalidades**
+- *Helpers* para criar contratos, exercer *choices* e fazer *queries*.
+- Geração automática de inputs com Hypothesis e *shrinking* de contraexemplos.
+- Isolamento de partes por teste (evita interferências entre casos).
+- Integração com pytest para correr localmente e em CI.
+
+**O que encontrarás neste repositório**
+- O módulo `daml_pbt` com os *helpers*.
+- **Exemplos concretos** de contratos Daml com propriedades de referência.
+- **Templates reutilizáveis** para arrancar rapidamente novos testes.
+
+**Pré-requisitos**
+- **Daml SDK** a correr localmente (**Sandbox** e **JSON API**).
+- **Python 3.x** com `pytest`, `hypothesis` e `requests`.
+- Um **DAR** do teu projeto Daml (ver secção abaixo).
+
+## Tipos de ficheiros
 A ferramenta usa o seguinte tipo de ficheiros:
 - **DAR** (Daml Archive): pacote compilado contendo os módulos e templates DAML do projeto.
 - **VENV** (Virtual Environment): ambiente virtual de Python que isola dependências e executáveis do projeto.
 
 # Como correr a tool
-Em todos os comandos é necessário estar na pasta do projeto daml (onde está o ficheiro daml.yaml)
+Em todos os comandos é necessário estar na pasta do projeto daml (onde está o ficheiro daml.yaml).
 Se ainda não tiver venv criado é preciso correr
 ```python3 -m venv .venv```
 ```source .venv/bin/activate```
 ```pip install -U pip pytest hypothesis requests```
 
 Se ainda não tiver ficheiro DAR, é preciso correr
-```daml build```
+```daml build```.
 São precisos 3 terminais para os testes.
 
 ### Terminal A
@@ -51,54 +73,44 @@ A constante "PKG" é o que está dentro das aspas.
 ---------------------------------------------------------------------------------------------------------
 # Exemplos e templates
 
-## Exemplos e templates
-
-### Exemplos concretos
+## Exemplos concretos
 Há **8** exemplos concretos neste repositório, localizados em:  
 `miguel-valido-repo/benchmark/daml_contracts/`
 
-- **AssetTransfer** (`AssetTransfer/`)  
-  Workflow de compra/venda com estados (p.ex., `ItemAvailable`, `OfferPlaced`,
-  inspeção/avaliação, `Accepted`/`Rejected`) e papéis (owner, buyer, inspector,
-  appraiser).  
+- **AssetTransfer**
+  Workflow de compra/venda com estados (p.ex., `Active`, `OfferPlaced`,`PendingInspection`,`Inspected`, `Accepted`/`Rejected`) e papéis/roles (owner, buyer, inspector e appraiser).  
   *Propriedades*: transições válidas, guards de aceitação/rejeição, permissões
-  por papel.
+  por papel/role.
 
-- **BorrowAndLending** (`BorrowAndLending/`)  
+- **BorrowAndLending**
   *Pool* de empréstimos: depositar (lend), levantar (withdraw), pedir (borrow) e
   reembolsar (repay).  
   *Propriedades*: `Lend` acumula saldos; `Withdraw` respeita saldo disponível;
-  ciclo `Borrow/Repay` restaura o estado.
+  ciclo `Borrow/Repay` restaura o estado corretamente.
 
-- **DefectiveComponentCounter** (`DefectiveComponentCounter/`)  
+- **DefectiveComponentCounter** 
   Contagem de componentes defeituosos com permissões por fabricante.  
-  *Propriedades*: `ComputeTotal` preserva a soma; apenas o fabricante está
-  autorizado.
+  *Propriedades*: `ComputeTotal` preserva a soma; apenas o fabricante está autorizado.
 
-- **DigitalLocker** (`DigitalLocker/`)  
+- **DigitalLocker** 
   Cofre digital para partilha de documentos com pedidos e revogações.  
-  *Propriedades*: `UploadDocuments` define campos; ciclo
-  `Request→Accept→Release`; ida e volta `Share→Revoke`.
+  *Propriedades*: `UploadDocuments` define campos; ciclo `Request→Accept→Release`; ida e volta `Share→Revoke` restaura estado corretamente.
 
-- **FrequentFlier** (`FrequentFlier/`)  
+- **FrequentFlier**
   Programa de milhas com acumulação e regras de recompensa.  
-  *Propriedades*: `AddMiles` atualiza milhas/recompensas; apenas o viajante
-  autorizado.
+  *Propriedades*: `AddMiles` atualiza milhas/recompensas; apenas o viajante autorizado.
 
-- **SimpleMarket** (`SimpleMarket/`)  
+- **SimpleMarket**
   Marketplace simples com oferta/aceitação/rejeição e mudanças de estado.  
-  *Propriedades*: `MakeOffer` apenas a partir de `ItemAvailable`; muda para
-  `OfferPlaced`; só o *owner* aceita/rejeita; guards respeitados.
+  *Propriedades*: `MakeOffer` apenas a partir de `ItemAvailable`; `MakeOffer` muda para `OfferPlaced`; só o *owner* aceita/rejeita ofertas; guards respeitados.
 
-- **WhitelistedRegistry** (`WhitelistedRegistry/`)  
+- **WhitelistedRegistry**
   Registo com *owner* e lista branca de partes autorizadas.  
-  *Propriedades*: só o *owner* pode alterar owner/whitelist; `SetWhitelisted`
-  alterna a filiação; `IsWhitelisted` reflete o estado real.
+  *Propriedades*: só o *owner* pode alterar owner/whitelist; `SetWhitelisted` alterna a filiação; `IsWhitelisted` reflete o estado real.
 
-- **ZeroTokenBank** (`ZeroTokenBank/`)  
-  “Banco” mínimo sem token nativo: abrir conta, depositar, levantar e consultar
-  saldo.  
-  *Propriedades*: depósito aumenta saldo; levantamento é proibido com saldo zero.
+- **ZeroTokenBank** 
+  “Banco” mínimo sem token nativo: abrir conta, depositar, levantar e consultar saldo.  
+  *Propriedades*: depósito aumenta saldo corretamente; levantamento é proibido com saldo zero.
 
 ---
 
@@ -107,20 +119,14 @@ Existem **3** templates, disponíveis em:
 `miguel-valido-repo/benchmark/daml_contracts/templates`
 
 - **BorrowLendingTemplate**  
-  Base para *pools* de empréstimo: `Lend`, `Withdraw`, `Borrow`, `Repay`,
-  saldos por parte e validações de limites. Útil para testar invariantes de
-  contabilização, regras de *collateral* e rondas de *borrow/repay*.
+  Base para *pools* de empréstimo: `Lend`, `Withdraw`, `Borrow`, `Repay`, saldos por parte e validações de limites. Útil para testar invariantes de contabilização, regras de colateral e *round-trips* de *borrow/repay*.
 
 - **WhitelistedRegistryTemplate**  
-  Padrão de controlo de acesso com *owner* e *whitelist*: `SetWhitelisted`
-  (liga/desliga), `IsWhitelisted` (consulta) e troca de *owner*. Serve de base
-  para cenários onde autorizações e papéis variam ao longo do tempo.
+  Padrão de controlo de acesso com *owner* e *whitelist*: `SetWhitelisted` (liga/desliga), `IsWhitelisted` (consulta) e troca de *owner*. Serve de base para cenários onde autorizações e papéis variam ao longo do tempo.
 
 - **ZeroTokenBankTemplate**  
-  “Banco” custodial minimalista: abrir conta, depositar, levantar, consultar.
-  Ideal para invariantes simples (saldo nunca negativo, soma de saldos
-  consistente) e testes de permissões básicos.
+  “Banco” custodial minimalista: abrir conta, depositar, levantar, consultar. Ideal para invariantes simples (saldo nunca negativo, soma de saldos consistente) e testes de permissões básicos.
 
-> Dica: cada template inclui um conjunto pequeno de propriedades de arranque
-> no diretório `tests/` correspondente, que podes usar como padrão e expandir.
+> Dica: cada template e exemplo concreto inclui um conjunto pequeno de propriedades de arranque
+> no diretório `tests/` correspondente, que podem ser usados como padrão.
 
