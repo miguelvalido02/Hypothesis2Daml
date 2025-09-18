@@ -130,3 +130,11 @@ Existem **3** templates, disponíveis em:
 > Dica: cada template e exemplo concreto inclui um conjunto pequeno de propriedades de arranque
 > no diretório `tests/` correspondente, que podem ser usados como padrão.
 
+
+## Declaração de uso de IA generativa
+
+Usei ferramentas de IA generativa para ajudar a implementar e a executar os
+testes baseados em propriedades. As propriedades em si foram concebidas e
+escritas por mim. Todo o conteúdo sugerido pela IA foi revisto, adaptado e
+validado antes de ser incluído. A responsabilidade pelas propriedades, pelos
+testes e pelo código é inteiramente minha.
