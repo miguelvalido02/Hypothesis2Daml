@@ -1,140 +1,198 @@
-# Introdução
+# Introduction
 
-Esta ferramenta fornece uma biblioteca Python para **testes baseados em propriedades (property-based testing)** de contratos **Daml**, executando-os via **Daml JSON API**. 
-O módulo `daml_pbt` integra-se com **Hypothesis** (geração e *shrinking* de dados) e **pytest** (execução e relatórios), 
-permitindo validar **invariantes**, **pré/pós-condições** e **workflows stateful** com exemplos gerados automaticamente e **contra-exemplos reprodutíveis**.
+This tool provides a Python library for **property-based testing** of **Daml**
+contracts, executing them via the **Daml JSON API**.
+The `daml_pbt` module integrates with **Hypothesis** (data generation and
+shrinking) and **pytest** (execution and reporting), allowing you to validate
+**invariants**, **pre/postconditions**, and **stateful workflows** with
+automatically generated examples and **reproducible counterexamples**.
 
-**Principais funcionalidades**
-- *Helpers* para criar contratos, exercer *choices* e fazer *queries*.
-- Geração automática de inputs com Hypothesis e *shrinking* de contraexemplos.
-- Isolamento de partes por teste (evita interferências entre casos).
-- Integração com pytest para correr localmente e em CI.
+**Key features**
 
-**O que encontrarás neste repositório**
-- O módulo `daml_pbt` com os *helpers*.
-- **Exemplos concretos** de contratos Daml com propriedades de referência.
-- **Templates reutilizáveis** para arrancar rapidamente novos testes.
+* Helpers to create contracts, exercise choices, and run queries.
+* Automatic input generation with Hypothesis and counterexample shrinking.
+* Per-test party isolation (prevents interference between cases).
+* Integration with pytest to run locally and in continuous integration (CI).
 
-**Pré-requisitos**
-- **Daml SDK** a correr localmente (**Sandbox** e **JSON API**).
-- **Python 3.x** com `pytest`, `hypothesis` e `requests`.
-- Um **DAR** do teu projeto Daml (ver secção abaixo).
+**What you’ll find in this repository**
 
-## Tipos de ficheiros
-A ferramenta usa o seguinte tipo de ficheiros:
-- **DAR** (Daml Archive): pacote compilado contendo os módulos e templates DAML do projeto.
-- **VENV** (Virtual Environment): ambiente virtual de Python que isola dependências e executáveis do projeto.
+* The `daml_pbt` module with the helpers.
+* **Concrete examples** of Daml contracts with reference properties.
+* **Reusable templates** to quickly bootstrap new tests.
 
-# Como correr a tool
-Em todos os comandos é necessário estar na pasta do projeto daml (onde está o ficheiro daml.yaml).
-Se ainda não tiver venv criado é preciso correr
-```python3 -m venv .venv```
-```source .venv/bin/activate```
-```pip install -U pip pytest hypothesis requests```
+**Prerequisites**
 
-Se ainda não tiver ficheiro DAR, é preciso correr
-```daml build```.
-São precisos 3 terminais para os testes.
+* **Daml SDK** running locally (**Sandbox** and **JSON API**).
+* **Python 3.x** with `pytest`, `hypothesis`, and `requests`.
+* A **DAR** file for your Daml project.
+
+# How to run the tool
+
+For all commands, be in the Daml project folder (where `daml.yaml` is).
+
+If you don’t have a virtual environment yet, run:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -U pip pytest hypothesis requests
+```
+
+If you don’t have a DAR file yet, run:
+
+```bash
+daml build
+```
+
+You’ll need **3 terminals** to run the tests.
 
 ### Terminal A
-Correr o comando
- ```daml sandbox --port 6865```
+
+Run:
+
+```bash
+daml sandbox --port 6865
+```
 
 ### Terminal B
-Correr o comando
-```daml json-api --ledger-host localhost --ledger-port 6865 --http-port 7575```
+
+Run:
+
+```bash
+daml json-api --ledger-host localhost --ledger-port 6865 --http-port 7575
+```
 
 ### Terminal C
-É necessário carregar o DAR:
-```daml ledger upload-dar --host localhost --port 6865 .daml/dist/TestBankTemplate-1.0.0.dar```
 
-Depois de garantir que há VENV (passo inicial), correr:
- ```source .venv/bin/activate```
- Para correr o teste:
-```pytest -q -s tests/test_bank_template.py::test_deposit_increases_balance```
-Também é possível correr todos os testes do ficheiro:
-```pytest -q -s tests/test_bank_template.py```
+Upload the DAR:
 
----------------------------------------------------------------------------------------------------------
-# Ficheiro de teste
-Há alguns exemplos de ficheiros de teste neste repositório mas aqui ficam duas dicas:
-Como importar a lib:
-```from daml_pbt import make_request, make_auth, make_admin_auth, ensure_ok, allocate_party, allocate_unique_party```
+```bash
+daml ledger upload-dar --host localhost --port 6865 .daml/dist/TestBankTemplate-1.0.0.dar
+```
 
-É necessário ir buscar o package_id. Para tal, correr 
- ```daml damlc inspect-dar .daml/dist/TestBankTemplate-1.0.0.dar```
-e vai aparecer algures dentro do output:
+After ensuring the virtual environment exists (first step), run:
 
-```DAR archive contains the following packages: TestBankTemplate-1.0.0-c6f004b1cd672ae532964d33767186c66d1b0673ce87a0e05b35e7b78c2fc514 "c6f004b1cd672ae532964d33767186c66d1b0673ce87a0e05b35e7b78c2fc514"```
+```bash
+source .venv/bin/activate
+```
 
-A constante "PKG" é o que está dentro das aspas.
-```PKG = "c6f004b1cd672ae532964d33767186c66d1b0673ce87a0e05b35e7b78c2fc514"```
+To run a single test:
 
----------------------------------------------------------------------------------------------------------
-# Exemplos e templates
+```bash
+pytest -q -s tests/test_bank_template.py::test_deposit_increases_balance
+```
 
-## Exemplos concretos
-Há **8** exemplos concretos neste repositório, localizados em:  
+To run all tests in the file:
+
+```bash
+pytest -q -s tests/test_bank_template.py
+```
+
+---
+
+# Test file
+
+There are some example test files in this repo but here are two quick tips.
+
+How to import the library:
+
+```python
+from daml_pbt import make_request, make_auth, make_admin_auth, ensure_ok, allocate_party, allocate_unique_party
+```
+
+You need to obtain the `package_id`. Run:
+
+```bash
+daml damlc inspect-dar .daml/dist/TestBankTemplate-1.0.0.dar
+```
+
+You’ll see something like in the output:
+
+```
+DAR archive contains the following packages: TestBankTemplate-1.0.0-c6f004b1cd672ae532964d33767186c66d1b0673ce87a0e05b35e7b78c2fc514 "c6f004b1cd672ae532964d33767186c66d1b0673ce87a0e05b35e7b78c2fc514"
+```
+
+The constant `PKG` is the value inside quotes:
+
+```python
+PKG = "c6f004b1cd672ae532964d33767186c66d1b0673ce87a0e05b35e7b78c2fc514"
+```
+
+---
+
+# Examples and templates
+
+## Concrete examples
+
+There are **8** concrete examples in this repository, located at:
 `miguel-valido-repo/benchmark/daml_contracts/`
 
-- **AssetTransfer**
-  Workflow de compra/venda com estados (p.ex., `Active`, `OfferPlaced`,`PendingInspection`,`Inspected`, `Accepted`/`Rejected`) e papéis/roles (owner, buyer, inspector e appraiser).  
-  *Propriedades*: transições válidas, guards de aceitação/rejeição, permissões
-  por papel/role.
+* **AssetTransfer**
+  Buy/sell workflow with states (e.g., `Active`, `OfferPlaced`, `PendingInspection`,
+  `Inspected`, `Accepted`/`Rejected`) and roles (owner, buyer, inspector, appraiser).
+  *Properties*: valid transitions, accept/reject guards, role-based permissions.
 
-- **BorrowAndLending**
-  *Pool* de empréstimos: depositar (lend), levantar (withdraw), pedir (borrow) e
-  reembolsar (repay).  
-  *Propriedades*: `Lend` acumula saldos; `Withdraw` respeita saldo disponível;
-  ciclo `Borrow/Repay` restaura o estado corretamente.
+* **BorrowAndLending**
+  Loan pool: deposit (lend), withdraw, borrow, and repay.
+  *Properties*: `Lend` accumulates balances; `Withdraw` respects available balance;
+  `Borrow/Repay` round-trip restores state correctly.
 
-- **DefectiveComponentCounter** 
-  Contagem de componentes defeituosos com permissões por fabricante.  
-  *Propriedades*: `ComputeTotal` preserva a soma; apenas o fabricante está autorizado.
+* **DefectiveComponentCounter**
+  Counting defective components with manufacturer-only permissions.
+  *Properties*: `ComputeTotal` preserves the sum; only the manufacturer is authorized.
 
-- **DigitalLocker** 
-  Cofre digital para partilha de documentos com pedidos e revogações.  
-  *Propriedades*: `UploadDocuments` define campos; ciclo `Request→Accept→Release`; ida e volta `Share→Revoke` restaura estado corretamente.
+* **DigitalLocker**
+  Digital locker for sharing documents with requests and revocations.
+  *Properties*: `UploadDocuments` sets fields; `Request→Accept→Release` cycle;
+  `Share→Revoke` round-trip restores state correctly.
 
-- **FrequentFlier**
-  Programa de milhas com acumulação e regras de recompensa.  
-  *Propriedades*: `AddMiles` atualiza milhas/recompensas; apenas o viajante autorizado.
+* **FrequentFlier**
+  Frequent-flier miles program with accrual and reward rules.
+  *Properties*: `AddMiles` updates miles/rewards; only the flier is authorized.
 
-- **SimpleMarket**
-  Marketplace simples com oferta/aceitação/rejeição e mudanças de estado.  
-  *Propriedades*: `MakeOffer` apenas a partir de `ItemAvailable`; `MakeOffer` muda para `OfferPlaced`; só o *owner* aceita/rejeita ofertas; guards respeitados.
+* **SimpleMarket**
+  Simple marketplace with offer/accept/reject and state changes.
+  *Properties*: `MakeOffer` only from `ItemAvailable`; `MakeOffer` moves to
+  `OfferPlaced`; only the owner may accept/reject; guards enforced.
 
-- **WhitelistedRegistry**
-  Registo com *owner* e lista branca de partes autorizadas.  
-  *Propriedades*: só o *owner* pode alterar owner/whitelist; `SetWhitelisted` alterna a filiação; `IsWhitelisted` reflete o estado real.
+* **WhitelistedRegistry**
+  Registry with an owner and a whitelist of authorized parties.
+  *Properties*: only the owner may change owner/whitelist; `SetWhitelisted`
+  toggles membership; `IsWhitelisted` reflects the actual state.
 
-- **ZeroTokenBank** 
-  “Banco” mínimo sem token nativo: abrir conta, depositar, levantar e consultar saldo.  
-  *Propriedades*: depósito aumenta saldo corretamente; levantamento é proibido com saldo zero.
+* **ZeroTokenBank**
+  Minimal “bank” without a native token: open account, deposit, withdraw, check balance.
+  *Properties*: deposit increases balance correctly; withdraw is forbidden at zero balance.
 
 ---
 
 ### Templates
-Existem **3** templates, disponíveis em:  
+
+There are **3** templates, available at:
 `miguel-valido-repo/benchmark/daml_contracts/templates`
 
-- **BorrowLendingTemplate**  
-  Base para *pools* de empréstimo: `Lend`, `Withdraw`, `Borrow`, `Repay`, saldos por parte e validações de limites. Útil para testar invariantes de contabilização, regras de colateral e *round-trips* de *borrow/repay*.
+* **BorrowLendingTemplate**
+  Base for lending pools: `Lend`, `Withdraw`, `Borrow`, `Repay`, per-party balances,
+  and limit validations. Useful to test accounting invariants, collateral rules,
+  and borrow/repay round-trips.
 
-- **WhitelistedRegistryTemplate**  
-  Padrão de controlo de acesso com *owner* e *whitelist*: `SetWhitelisted` (liga/desliga), `IsWhitelisted` (consulta) e troca de *owner*. Serve de base para cenários onde autorizações e papéis variam ao longo do tempo.
+* **WhitelistedRegistryTemplate**
+  Access-control pattern with owner and whitelist: `SetWhitelisted` (toggle),
+  `IsWhitelisted` (query), and owner transfer. A base for scenarios where
+  authorizations and roles change over time.
 
-- **ZeroTokenBankTemplate**  
-  “Banco” custodial minimalista: abrir conta, depositar, levantar, consultar. Ideal para invariantes simples (saldo nunca negativo, soma de saldos consistente) e testes de permissões básicos.
+* **ZeroTokenBankTemplate**
+  Minimal custodial “bank”: open account, deposit, withdraw, query.
+  Ideal for simple invariants (balance never negative, consistent sum of balances)
+  and basic permission tests.
 
-> Dica: cada template e exemplo concreto inclui um conjunto pequeno de propriedades de arranque
-> no diretório `tests/` correspondente, que podem ser usados como padrão.
+> Tip: each template and concrete example includes a small starter set of
+> properties in its corresponding `tests/` directory, which you can use as a
+> baseline.
 
+## Generative AI usage statement
 
-## Declaração de uso de IA generativa
-
-Usei ferramentas de IA generativa para ajudar a implementar e a executar os
-testes baseados em propriedades. As propriedades em si foram concebidas e
-escritas por mim. Todo o conteúdo sugerido pela IA foi revisto, adaptado e
-validado antes de ser incluído. A responsabilidade pelas propriedades, pelos
-testes e pelo código é inteiramente minha.
+I used generative AI tools to help implement and execute the property-based
+tests. All AI-suggested content was reviewed, adapted, and validated before
+being included. Responsibility for the properties, tests, and code is entirely
+mine.
